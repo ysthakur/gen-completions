@@ -1,31 +1,15 @@
 pub mod gen;
 pub mod parse;
+pub mod result;
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use parse::{parse_manpage_text, read_manpage, CommandInfo};
-use thiserror::Error;
+use result::Result;
 
-pub type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Debug, Error)]
-pub enum Error {
-  #[error("could not parse manpage")]
-  ParseError(String),
-
-  #[error(transparent)]
-  IoError(#[from] std::io::Error),
-
-  #[error("no manpages found. Please set the MANPATH environment variable.")]
-  NoManPages,
-
-  #[error("{msg:?}")]
-  Other { msg: String },
-}
-
-/// Find the manpath (search path for man)
+/// Find the search path for man
 ///
 /// Looks at `$MANPATH` first, then tries running `manpath`, then `man --path`.
 pub fn get_manpath() -> Option<HashSet<PathBuf>> {
@@ -139,20 +123,13 @@ where
 
   for manpage in manpages {
     if let Ok(text) = read_manpage(&manpage) {
-      let file_name = manpage
-        .as_ref()
-        .file_name()
-        .unwrap()
-        .to_string_lossy()
-        .replace(std::char::REPLACEMENT_CHARACTER, "");
-      // The file name will be something like foo.1.gz, we only want foo
-      let cmd_name = file_name.split(".").nth(0).unwrap_or_else(|| &file_name);
-      match parse_manpage_text(cmd_name, &text) {
+      let cmd_name = manpage_cmd(manpage.as_ref());
+      match parse_manpage_text(&cmd_name, &text) {
         Ok(parsed) => {
-          res.insert(cmd_name.to_string(), parsed);
+          res.insert(cmd_name, parsed);
         }
         Err(err) => {
-          // TODO implement Display?
+          // TODO implement Display? or maybe collect errors
           eprintln!("{:?}", err);
         }
       }

@@ -6,12 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+flate2 = "1.0"
 regex = "1.9"
 thiserror = "1.0"
-
-# TODO find a better way to ensure these are only used by the binary
-# Binary only
-clap = { version = "4.3", features = ["derive"] }
 
 [lib]
 name = "man_completions"

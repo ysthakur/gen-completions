@@ -5,7 +5,8 @@ use man_completions::{
   gen::{zsh::ZshCompletions, Completions},
   get_manpath,
   parse::{parse_manpage_at_path, CommandInfo},
-  parse_all_manpages, Error, Result,
+  parse_all_manpages,
+  result::{Error, Result},
 };
 use std::path::Path;
 
@@ -52,7 +53,7 @@ fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
   }
 }
 
-fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Path) {
+fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Path) -> Result<()> {
   match shell {
     Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages.into_iter(), out_dir),
   }
@@ -75,8 +76,7 @@ fn main() -> Result<()> {
           let parsed = parse_manpage_at_path(cmd, manpage)?;
           let mut map = HashMap::new();
           map.insert(cmd.to_string(), parsed);
-          gen_shell(args.shell, map, &args.out);
-          Ok(())
+          gen_shell(args.shell, map, &args.out)
         } else {
           Err(Error::Other {
             msg: format!("No manpage found for {cmd}"),
@@ -85,8 +85,7 @@ fn main() -> Result<()> {
       } else {
         let all_manpages = man_completions::enumerate_manpages(included, args.sections_exclude);
         let all_parsed = parse_all_manpages(all_manpages);
-        gen_shell(args.shell, all_parsed, &args.out);
-        Ok(())
+        gen_shell(args.shell, all_parsed, &args.out)
       }
     }
     None => Err(Error::NoManPages),

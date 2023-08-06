@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{parse::CommandInfo, Result};
+use crate::{parse::CommandInfo, result::Result};
 
 pub mod zsh;
 
@@ -9,14 +9,13 @@ pub trait Completions {
   where
     P: AsRef<Path>;
 
-  fn generate_all<I, P>(cmds: I, out_dir: P) -> ()
+  fn generate_all<I, P>(cmds: I, out_dir: P) -> Result<()>
   where
     I: Iterator<Item = (String, CommandInfo)>,
     P: AsRef<Path>,
   {
-    for (cmd_name, cmd_info) in cmds {
-      // TODO collect errors instead of discarding
-      <Self as Completions>::generate(cmd_name, cmd_info, &out_dir);
-    }
+    cmds
+      .map(|(cmd_name, cmd_info)| <Self as Completions>::generate(cmd_name, cmd_info, &out_dir))
+      .collect()
   }
 }
