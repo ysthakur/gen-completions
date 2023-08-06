@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::Result;
-use std::{io, path::Path};
+use std::path::Path;
 
 pub mod parse_man;
 
@@ -19,8 +19,8 @@ pub fn read_manpage<P>(manpage_path: P) -> Result<String>
 where
   P: AsRef<Path>,
 {
-  let path_ref = manpage_path.as_ref();
-  match path_ref.extension() {
+  let path = manpage_path.as_ref();
+  match path.extension() {
     Some(ext) => todo!(),
     None => todo!(),
   }

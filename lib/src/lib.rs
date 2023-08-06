@@ -32,7 +32,10 @@ pub enum Error {
 /// Looks at `$MANPATH` first, then tries running `manpath`, then `man --path`.
 pub fn get_manpath() -> Option<HashSet<PathBuf>> {
   fn split_path(path: &str) -> HashSet<PathBuf> {
-    path.split(":").map(|path| PathBuf::from(path)).collect()
+    path
+      .split(":")
+      .map(|path| std::fs::canonicalize(PathBuf::from(path)).unwrap())
+      .collect()
   }
 
   if let Ok(manpath) = std::env::var("MANPATH") {

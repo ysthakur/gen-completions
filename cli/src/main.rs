@@ -16,8 +16,6 @@ enum Shell {
 
 #[derive(Parser)]
 struct CLI {
-  #[arg(short = 'p', long)]
-  manpath: Option<Vec<PathBuf>>,
   #[arg(short, long)]
   exclude: Option<Vec<PathBuf>>,
   #[arg(short, long)]
@@ -37,11 +35,7 @@ fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Pat
 fn main() -> Result<()> {
   let args = CLI::parse();
 
-  match args
-    .manpath
-    .map(|p| p.into_iter().collect())
-    .or_else(get_manpath)
-  {
+  match get_manpath() {
     Some(manpath) => {
       let excluded = args.exclude.unwrap_or_default();
       // These directories we can search in
