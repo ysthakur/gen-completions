@@ -1,6 +1,7 @@
 mod parse;
 mod gen;
 
+use parse::Parsed;
 use std::path::PathBuf;
 
 pub fn get_manpath() -> Option<Vec<PathBuf>> {
@@ -19,16 +20,6 @@ pub fn find_manpage(cmd: &str, manpath: Vec<PathBuf>) -> Option<PathBuf> {
 static SECTIONS: [&str; 8] = [
   "man1", "man2", "man3", "man4", "man5", "man6", "man7", "man8",
 ];
-
-pub struct Parsed {
-  cmd_name: String,
-  opts: Vec<Opt>,
-}
-
-pub struct Opt {
-  name: String,
-  desc: String,
-}
 
 pub fn enumerate_manpages(manpath: Vec<PathBuf>) -> Vec<PathBuf> {
   let mut res = vec![];
