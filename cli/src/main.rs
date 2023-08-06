@@ -32,7 +32,7 @@ struct CLI {
 
   /// Manpage sections to exclude (1-8)
   #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
-  sections_exclude: Option<Vec<u8>>,
+  sections_exclude: Vec<u8>,
 
   /// A particular command to generate completions for. If omitted, generates
   /// completions for all found commands.
@@ -61,7 +61,6 @@ fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Pat
 fn main() -> Result<()> {
   let args = CLI::parse();
 
-  println!("{:?}", &args);
   match get_manpath() {
     Some(manpath) => {
       let exclude_dirs = args.dirs_exclude.unwrap_or_default();
@@ -72,12 +71,17 @@ fn main() -> Result<()> {
         .collect();
 
       if let Some(cmd) = &args.cmd {
-        let manpage = man_completions::find_manpage(cmd, included)?;
-        let parsed = parse_manpage_at_path(cmd, manpage)?;
-        let mut map = HashMap::new();
-        map.insert(cmd.to_string(), parsed);
-        gen_shell(args.shell, map, &args.out);
-        Ok(())
+        if let Some(manpage) = man_completions::find_manpage(cmd, included) {
+          let parsed = parse_manpage_at_path(cmd, manpage)?;
+          let mut map = HashMap::new();
+          map.insert(cmd.to_string(), parsed);
+          gen_shell(args.shell, map, &args.out);
+          Ok(())
+        } else {
+          Err(Error::Other {
+            msg: format!("No manpage found for {cmd}"),
+          })
+        }
       } else {
         let all_manpages = man_completions::enumerate_manpages(included, args.sections_exclude);
         let all_parsed = parse_all_manpages(all_manpages);

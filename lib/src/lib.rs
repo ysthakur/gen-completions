@@ -12,14 +12,17 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
-  #[error("Could not parse manpage")]
+  #[error("could not parse manpage")]
   ParseError(String),
 
   #[error(transparent)]
   IoError(#[from] std::io::Error),
 
-  #[error("No manpages found. Please set the MANPATH environment variable.")]
+  #[error("no manpages found. Please set the MANPATH environment variable.")]
   NoManPages,
+
+  #[error("{msg:?}")]
+  Other { msg: String },
 }
 
 /// Find the manpath (search path for man)
@@ -53,20 +56,14 @@ pub fn get_manpath() -> Option<HashSet<PathBuf>> {
   }
 }
 
-pub fn find_manpage<P: AsRef<Path>, I>(cmd: &str, manpath: I) -> Result<P>
-where
-  I: IntoIterator<Item = P>,
-{
-  todo!()
-}
-
 /// Enumerate all manpages given a list of directories to search in
 ///
-/// * manpath - Directories that man searches in (`$MANPATH/manpath/man --path`).
+/// ## Arguments
+/// * `manpath` - Directories that man searches in (`$MANPATH/manpath/man --path`).
 ///     Inside each of these directories should be `man1`, `man2`, etc. folders.
 ///     The paths should be canonical.
-/// * exclude_sections - Man sections to exclude, if any (1-8)
-pub fn enumerate_manpages<I, P, S>(manpath: I, exclude_sections: Option<S>) -> Vec<PathBuf>
+/// * `exclude_sections` - Man sections to exclude, if any (1-8)
+pub fn enumerate_manpages<I, P, S>(manpath: I, exclude_sections: S) -> Vec<PathBuf>
 where
   I: IntoIterator<Item = P>,
   P: AsRef<Path>,
@@ -75,11 +72,7 @@ where
   let mut res = vec![];
 
   // TODO figure out why fish only seems to use man1, man6, and man8
-  let exclude: Vec<u8> = if let Some(sections) = exclude_sections {
-    sections.into_iter().collect()
-  } else {
-    Vec::new()
-  };
+  let exclude: Vec<u8> = exclude_sections.into_iter().collect();
   let section_names: Vec<_> = (1u8..8u8)
     .filter(|n| !exclude.contains(&n))
     .map(|n| format!("man{n}"))
@@ -99,6 +92,42 @@ where
   res.sort();
 
   res
+}
+
+/// Get the command that a manpage is for, given its path
+fn manpage_cmd(manpage_path: &Path) -> String {
+  let file_name = manpage_path
+    .file_name()
+    .unwrap()
+    .to_string_lossy()
+    .replace(std::char::REPLACEMENT_CHARACTER, "");
+  // The file name will be something like foo.1.gz, we only want foo
+  file_name
+    .split(".")
+    .nth(0)
+    .unwrap_or_else(|| &file_name)
+    .to_string()
+}
+
+/// Find the manpage for a specific command
+///
+/// ## Arguments
+/// * `cmd` - The command to find the manpage for
+/// * `manpath` - Directories that man searches in  (`$MANPATH/manpath/man --path`).
+///     Inside each of these directories should be `man1`, `man2`, etc. folders.
+///     The paths should be canonical.
+pub fn find_manpage<P, I>(cmd: &str, manpath: I) -> Option<PathBuf>
+where
+  P: AsRef<Path>,
+  I: IntoIterator<Item = P>,
+{
+  for manpage in enumerate_manpages(manpath, vec![]) {
+    if cmd == manpage_cmd(&manpage) {
+      return Some(manpage);
+    }
+  }
+
+  None
 }
 
 pub fn parse_all_manpages<I, P>(manpages: I) -> HashMap<String, CommandInfo>
