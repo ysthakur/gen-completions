@@ -1,3 +1,3 @@
 # man_completions
 
-Parse manpages to get Zsh completions
+Parse manpages to get completions for Zsh and Bash
