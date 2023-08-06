@@ -9,21 +9,47 @@ use man_completions::{
 };
 use std::path::Path;
 
-#[derive(Clone, ValueEnum)]
+#[derive(Debug, Clone, ValueEnum)]
 enum Shell {
   Zsh,
 }
 
-#[derive(Parser)]
+/// Generate completions from manpages
+#[derive(Debug, Parser)]
+#[command(version, about, long_about)]
 struct CLI {
-  #[arg(short, long)]
-  exclude: Option<Vec<PathBuf>>,
-  #[arg(short, long)]
-  out: PathBuf,
+  /// Shell to generate completions for
   #[arg(short, long)]
   shell: Shell,
-  /// A particular command to generate completions for
+
+  /// Directory to output completions to
+  #[arg(short, long)]
+  out: PathBuf,
+
+  /// Directories to exclude from search
+  #[arg(short = 'D', long, value_delimiter = ',')]
+  dirs_exclude: Option<Vec<PathBuf>>,
+
+  /// Manpage sections to exclude (1-8)
+  #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
+  sections_exclude: Option<Vec<u8>>,
+
+  /// A particular command to generate completions for. If omitted, generates
+  /// completions for all found commands.
   cmd: Option<String>,
+}
+
+fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
+  match str::parse::<u8>(s) {
+    Ok(num) => {
+      if 1 <= num && num <= 8 {
+        Ok(num)
+      } else {
+        Err("must be between 1 and 8".to_string())
+      }
+    }
+    _ => Err(format!("should be an int between 1 and 8")),
+  }
 }
 
 fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Path) {
@@ -35,13 +61,14 @@ fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Pat
 fn main() -> Result<()> {
   let args = CLI::parse();
 
+  println!("{:?}", &args);
   match get_manpath() {
     Some(manpath) => {
-      let excluded = args.exclude.unwrap_or_default();
+      let exclude_dirs = args.dirs_exclude.unwrap_or_default();
       // These directories we can search in
       let included: Vec<PathBuf> = manpath
         .into_iter()
-        .filter(|path| !excluded.contains(path))
+        .filter(|path| !exclude_dirs.contains(path))
         .collect();
 
       if let Some(cmd) = &args.cmd {
@@ -52,7 +79,7 @@ fn main() -> Result<()> {
         gen_shell(args.shell, map, &args.out);
         Ok(())
       } else {
-        let all_manpages = man_completions::enumerate_manpages(included);
+        let all_manpages = man_completions::enumerate_manpages(included, args.sections_exclude);
         let all_parsed = parse_all_manpages(all_manpages);
         gen_shell(args.shell, all_parsed, &args.out);
         Ok(())

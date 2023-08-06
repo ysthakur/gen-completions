@@ -8,22 +8,17 @@ use std::process::Command;
 use parse::{parse_manpage_text, read_manpage, CommandInfo};
 use thiserror::Error;
 
-// TODO figure out why fish only seems to use man1, 6, and 8
-static SECTIONS: [&str; 8] = [
-  "man1", "man2", "man3", "man4", "man5", "man6", "man7", "man8",
-];
-
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
-  #[error("could not parse manpage")]
+  #[error("Could not parse manpage")]
   ParseError(String),
 
   #[error(transparent)]
   IoError(#[from] std::io::Error),
 
-  #[error("no manpages found")]
+  #[error("No manpages found. Please set the MANPATH environment variable.")]
   NoManPages,
 }
 
@@ -34,7 +29,14 @@ pub fn get_manpath() -> Option<HashSet<PathBuf>> {
   fn split_path(path: &str) -> HashSet<PathBuf> {
     path
       .split(":")
-      .map(|path| std::fs::canonicalize(PathBuf::from(path)).unwrap())
+      .filter_map(|path| {
+        let path_buf = PathBuf::from(path);
+        if path_buf.exists() {
+          Some(std::fs::canonicalize(path_buf).unwrap())
+        } else {
+          None
+        }
+      })
       .collect()
   }
 
@@ -58,21 +60,37 @@ where
   todo!()
 }
 
-pub fn enumerate_manpages<I, P>(manpath: I) -> Vec<PathBuf>
+/// Enumerate all manpages given a list of directories to search in
+///
+/// * manpath - Directories that man searches in (`$MANPATH/manpath/man --path`).
+///     Inside each of these directories should be `man1`, `man2`, etc. folders.
+///     The paths should be canonical.
+/// * exclude_sections - Man sections to exclude, if any (1-8)
+pub fn enumerate_manpages<I, P, S>(manpath: I, exclude_sections: Option<S>) -> Vec<PathBuf>
 where
   I: IntoIterator<Item = P>,
   P: AsRef<Path>,
+  S: IntoIterator<Item = u8>,
 {
   let mut res = vec![];
 
+  // TODO figure out why fish only seems to use man1, man6, and man8
+  let exclude: Vec<u8> = if let Some(sections) = exclude_sections {
+    sections.into_iter().collect()
+  } else {
+    Vec::new()
+  };
+  let section_names: Vec<_> = (1u8..8u8)
+    .filter(|n| !exclude.contains(&n))
+    .map(|n| format!("man{n}"))
+    .collect();
+
   for parent_path in manpath.into_iter().filter(|p| p.as_ref().is_dir()) {
-    for section_name in SECTIONS {
+    for section_name in &section_names {
       let section_dir = parent_path.as_ref().join(section_name);
       if let Ok(manpages) = std::fs::read_dir(section_dir) {
         for manpage in manpages.filter_map(|p| p.ok()) {
-          if let Ok(path) = std::fs::canonicalize(manpage.path()) {
-            res.push(path)
-          }
+          res.push(manpage.path())
         }
       }
     }
