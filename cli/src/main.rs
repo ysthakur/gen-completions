@@ -27,6 +27,10 @@ struct CLI {
   #[arg(short, long)]
   out: PathBuf,
 
+  /// Turn on verbose output
+  #[arg(short, long)]
+  verbose: bool,
+
   /// Directories to exclude from search
   #[arg(short = 'D', long, value_delimiter = ',')]
   dirs_exclude: Option<Vec<PathBuf>>,
@@ -73,6 +77,9 @@ fn main() -> Result<()> {
 
       if let Some(cmd) = &args.cmd {
         if let Some(manpage) = man_completions::find_manpage(cmd, included) {
+          if args.verbose {
+            println!("Found manpage at {}", &manpage.display());
+          }
           let parsed = parse_manpage_at_path(cmd, manpage)?;
           let mut map = HashMap::new();
           map.insert(cmd.to_string(), parsed);

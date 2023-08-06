@@ -4,8 +4,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Error)]
 pub enum Error {
-  #[error("could not parse manpage")]
-  ParseError(String),
+  #[error("parse error in {cmd}: {msg}")]
+  ParseError { cmd: String, msg: String },
 
   #[error(transparent)]
   IoError(#[from] std::io::Error),
