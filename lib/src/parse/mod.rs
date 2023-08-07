@@ -1,5 +1,5 @@
 use std::{
-  collections::HashMap,
+  collections::{HashMap, HashSet},
   fs::File,
   io::{BufReader, Read},
 };
@@ -9,16 +9,18 @@ use flate2::bufread::GzDecoder;
 use crate::Result;
 use std::path::Path;
 
-pub mod parse_man;
+mod parse_man;
 
+#[derive(Debug)]
 pub struct CommandInfo {
-  opts: Vec<Opt>,
-  subcommands: HashMap<String, CommandInfo>,
+  pub args: Vec<Arg>,
+  pub subcommands: HashMap<String, CommandInfo>,
 }
 
-pub struct Opt {
-  forms: Vec<String>,
-  desc: String,
+#[derive(Debug)]
+pub struct Arg {
+  pub forms: HashSet<String>,
+  pub desc: String,
 }
 
 pub fn read_manpage<P>(manpage_path: P) -> Result<String>

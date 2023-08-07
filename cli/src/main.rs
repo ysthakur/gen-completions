@@ -58,6 +58,7 @@ fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
 }
 
 fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Path) -> Result<()> {
+  println!("{:?}", &manpages);
   match shell {
     Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages.into_iter(), out_dir),
   }
