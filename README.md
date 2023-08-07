@@ -1,4 +1,4 @@
-# man_completions
+# man-completions
 
 Parse manpages to get completions for Zsh, Bash, and Nu
 

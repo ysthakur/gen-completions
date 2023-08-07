@@ -1,4 +1,4 @@
 Cargo.lock linguist-generated=true
 flake.lock linguist-generated=true
 
-tests/*.txt linguist-generated=true
+resources/test/* linguist-generated=true

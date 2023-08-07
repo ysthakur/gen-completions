@@ -1,5 +1,5 @@
 [package]
-name = "man_completions"
+name = "man-completions"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,5 +12,5 @@ flate2 = "1.0"
 regex = "1.9"
 
 [[bin]]
-name = "man_completions"
+name = "man-completions"
 path = "src/main.rs"
