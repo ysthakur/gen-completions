@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use regex::{Regex, RegexBuilder};
 
-use crate::result::Result;
+use anyhow::Result;
 
 use super::{Arg, CommandInfo};
 
@@ -22,7 +22,7 @@ fn regex_for_section(title: &str) -> Regex {
     .unwrap()
 }
 
-pub fn parse(cmd_name: &str, page_text: &str) -> Result<Option<CommandInfo>> {
+pub fn parse(_cmd_name: &str, page_text: &str) -> Result<Option<CommandInfo>> {
   let re = regex_for_section(r#""OPTIONS""#);
   match re.captures(page_text) {
     Some(captures) => {
@@ -31,7 +31,7 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Result<Option<CommandInfo>> {
 
       for para in content.split(".PP") {
         if let Some(end) = para.find(".RE") {
-          let data = &para[3..end];
+          let data = &para[0..end];
           let data = remove_groff_formatting(data);
           let mut data = data.split(".RS 4");
           let options = data.next().unwrap();

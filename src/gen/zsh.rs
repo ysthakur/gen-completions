@@ -1,8 +1,4 @@
-use std::{
-  fs::{self, File},
-  io::Write,
-  path::Path,
-};
+use std::{fs, path::Path};
 
 use crate::parse::CommandInfo;
 
@@ -62,8 +58,7 @@ impl Completions for ZshCompletions {
 /// Wrap in single quotes (and escape single quotes inside) so that it's safe
 /// for Zsh to read
 fn quote(s: &str) -> String {
-  let s = s.replace(r"\", r"\\").replace(r"'", r"\'");
-  format!("'{s}'")
+  format!("'{}'", s.replace("'", r#"'"'"'"#))
 }
 
 /// Generate a completion function for a command/subcommand
@@ -74,7 +69,13 @@ fn quote(s: &str) -> String {
 /// * `fn` - What to name the completion function. If you have a command `foo`
 ///   with subcommand `bar`, the completion function for `foo bar` would be
 ///   named `_foo_bar`
-fn generate_fn(cmd_name: &str, cmd_info: CommandInfo, out: &mut String, pos: usize, fn_name: &str) {
+fn generate_fn(
+  _cmd_name: &str,
+  cmd_info: CommandInfo,
+  out: &mut String,
+  pos: usize,
+  fn_name: &str,
+) {
   out.push_str("\n");
   out.push_str(&format!("function {fn_name} {{\n"));
   if !cmd_info.subcommands.is_empty() {
@@ -100,7 +101,7 @@ fn generate_fn(cmd_name: &str, cmd_info: CommandInfo, out: &mut String, pos: usi
 
   if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{INDENT}case $line[{}] in\n", pos + 1));
-    for sub_cmd in cmd_info.subcommands.keys() {
+    for _sub_cmd in cmd_info.subcommands.keys() {
       todo!()
     }
     out.push_str(&format!("{INDENT}esac\n"));

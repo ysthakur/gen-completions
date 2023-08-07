@@ -1,6 +1,7 @@
 use std::path::Path;
 
-use crate::{parse::CommandInfo, result::Result};
+use crate::parse::CommandInfo;
+use anyhow::Result;
 
 pub mod zsh;
 

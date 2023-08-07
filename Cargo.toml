@@ -1,2 +1,16 @@
-[workspace]
-members = ["lib", "cli"]
+[package]
+name = "man_completions"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.3", features = ["derive"] }
+flate2 = "1.0"
+regex = "1.9"
+
+[[bin]]
+name = "man_completions"
+path = "src/main.rs"
