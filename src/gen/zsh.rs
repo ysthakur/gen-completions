@@ -48,7 +48,7 @@ impl Completions for ZshCompletions {
   {
     // TODO make option to not overwrite file
     let comp_name = format!("_{cmd_name}");
-    let mut res = format!("#compdef {comp_name} {cmd_name}");
+    let mut res = format!("#compdef {comp_name} {cmd_name}\n");
     generate_fn(&cmd_name, cmd_info, &mut res, 0, &comp_name);
     fs::write(out_dir.as_ref().join(format!("{comp_name}.zsh")), res)?;
     Ok(())
