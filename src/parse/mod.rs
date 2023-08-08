@@ -137,6 +137,16 @@ impl ManParseConfig {
     self
   }
 
+  pub fn exclude_commands<I>(mut self, regexes: I) -> Self
+  where
+    I: IntoIterator<Item = Regex>,
+  {
+    for regex in regexes {
+      self.exclude_commands.push(regex);
+    }
+    self
+  }
+
   /// Actually do the parsing
   pub fn parse(self) -> anyhow::Result<HashMap<String, CommandInfo>> {
     let manpath = self.manpath.or_else(|| get_manpath()).ok_or(anyhow!(

@@ -1,15 +1,15 @@
 mod gen;
 mod parse;
 
-use std::{collections::HashMap, path::PathBuf};
-
 use crate::{
   gen::{Completions, JsonCompletions, ZshCompletions},
   parse::{CommandInfo, ManParseConfig},
 };
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
+use regex::Regex;
 use std::path::Path;
+use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {
@@ -44,10 +44,14 @@ struct CLI {
   #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
   sections_exclude: Vec<u8>,
 
-  /// A particular command to generate completions for. If omitted, generates
+  /// Particular commands to generate completions for. If omitted, generates
   /// completions for all found commands.
-  #[arg(short, long)]
-  cmd: Option<String>,
+  #[arg(short, long, value_delimiter = ',')]
+  cmds: Option<Vec<String>>,
+
+  /// Commands to exclude (regex)
+  #[arg(short = 'C', long, value_delimiter = ',')]
+  exclude_cmds: Vec<Regex>,
 
   /// Shell to generate completions for
   shell: Shell,
@@ -82,9 +86,10 @@ fn main() -> Result<()> {
 
   let mut cfg = ManParseConfig::new()
     .exclude_dirs(args.dirs_exclude.unwrap_or_default())
-    .exclude_sections(args.sections_exclude);
-  if let Some(cmd) = args.cmd {
-    cfg = cfg.restrict_to_commands(vec![cmd]);
+    .exclude_sections(args.sections_exclude)
+    .exclude_commands(args.exclude_cmds);
+  if let Some(cmds) = args.cmds {
+    cfg = cfg.restrict_to_commands(cmds);
   }
   if args.search_subcommands {
     cfg = cfg.search_subcommands();
