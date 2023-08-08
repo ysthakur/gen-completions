@@ -11,4 +11,4 @@ target/
 
 .direnv/
 
-resources/test/tmp/
+tests/resources/tmp/
