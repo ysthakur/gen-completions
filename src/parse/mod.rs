@@ -2,7 +2,7 @@ mod type1;
 
 use anyhow::{anyhow, Result};
 use flate2::bufread::GzDecoder;
-use log::{debug, error, warn};
+use log::{debug, error, trace, warn};
 use regex::Regex;
 use std::{
   collections::{HashMap, HashSet},
@@ -85,9 +85,9 @@ impl ManParseConfig {
     Ok(self)
   }
 
-  /// Search for subcommands (off by default)
-  pub fn search_subcommands(mut self) -> Self {
-    self.search_subcommands = true;
+  /// Whether to search for subcommands (false by default)
+  pub fn search_subcommands(mut self, search: bool) -> Self {
+    self.search_subcommands = search;
     self
   }
 
@@ -191,9 +191,10 @@ fn parse_all_manpages(
 
   for (cmd, manpage) in manpages {
     if let Ok(text) = read_manpage(&manpage) {
-      let cmd_name = get_cmd_name(manpage.as_ref());
+      let cmd_name = get_cmd_name(&manpage);
       match parse_manpage_text(&cmd_name, &text) {
         Some(parsed) => {
+          trace!("Parsing man page for {} at {}", cmd_name, manpage.display());
           // todo merge subcommands later instead
           res.insert(
             cmd_name,

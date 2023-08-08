@@ -82,17 +82,17 @@ fn gen_shell(
 }
 
 fn main() -> Result<()> {
+  env_logger::init();
+
   let args = CLI::parse();
 
   let mut cfg = ManParseConfig::new()
     .exclude_dirs(args.dirs_exclude.unwrap_or_default())
     .exclude_sections(args.sections_exclude)
-    .exclude_commands(args.exclude_cmds);
+    .exclude_commands(args.exclude_cmds)
+    .search_subcommands(args.search_subcommands);
   if let Some(cmds) = args.cmds {
     cfg = cfg.restrict_to_commands(cmds);
-  }
-  if args.search_subcommands {
-    cfg = cfg.search_subcommands();
   }
 
   let res = cfg.parse()?;

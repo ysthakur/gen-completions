@@ -83,7 +83,11 @@ fn make_arg(options: &str, desc: &str) -> Option<Arg> {
   }
 
   if forms.is_empty() {
-    debug!("No options found in {}", options);
+    debug!(
+      "No options found in '{}', desc: {}",
+      options.trim(),
+      &desc.trim()[..40]
+    );
     return None;
   }
 
