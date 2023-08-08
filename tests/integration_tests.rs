@@ -27,7 +27,7 @@ fn test() {
     let cmd =
       cmd
         .env("MANPATH", &in_dir)
-        .args(["--shell", shell, "--out", &out_dir.display().to_string()]);
+        .args([shell, "--out", &out_dir.display().to_string()]);
     cmd.assert().success();
   }
 

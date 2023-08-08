@@ -15,6 +15,7 @@ use std::process::Command;
 
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {
+  /// Generate completions for Zsh
   Zsh,
   /// Not a shell, but output the parsed options as JSON
   Json,
@@ -24,10 +25,6 @@ enum Shell {
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
 struct CLI {
-  /// Shell to generate completions for
-  #[arg(short, long)]
-  shell: Shell,
-
   /// Directory to output completions to
   #[arg(short, long)]
   out: PathBuf,
@@ -51,7 +48,11 @@ struct CLI {
 
   /// A particular command to generate completions for. If omitted, generates
   /// completions for all found commands.
+  #[arg(short, long)]
   cmd: Option<String>,
+
+  /// Shell to generate completions for
+  shell: Shell,
 }
 
 fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
