@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-
+use log::debug;
 use regex::{Regex, RegexBuilder};
 
-use anyhow::Result;
-
-use super::{Arg, CommandInfo};
+use super::{Arg, ManParser};
 
 /// Maximum length of a description
 ///
@@ -12,6 +9,39 @@ use super::{Arg, CommandInfo};
 const MAX_DESC_LEN: usize = 80;
 
 const ELLIPSIS: &str = "...";
+
+pub struct Type1Parser;
+
+impl ManParser for Type1Parser {
+  fn parse(self, cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
+    let re = regex_for_section(r#""OPTIONS""#);
+    match re.captures(page_text) {
+      Some(captures) => {
+        let content = captures.get(1).unwrap().as_str();
+        let mut args = Vec::new();
+
+        for para in content.split(".PP") {
+          if let Some(end) = para.find(".RE") {
+            let data = &para[0..end];
+            let data = remove_groff_formatting(data);
+            let mut data = data.split(".RS 4");
+            let options = data.next().unwrap();
+            if let Some(desc) = data.next() {
+              if let Some(arg) = make_arg(options, desc) {
+                args.push(arg);
+              }
+            } else {
+              debug!("No indent in description, cmd: {}", cmd_name);
+            }
+          }
+        }
+
+        Some(args)
+      }
+      None => None,
+    }
+  }
+}
 
 /// Regex to get the contents of a section with the given title
 fn regex_for_section(title: &str) -> Regex {
@@ -22,38 +52,8 @@ fn regex_for_section(title: &str) -> Regex {
     .unwrap()
 }
 
-pub fn parse(_cmd_name: &str, page_text: &str) -> Result<Option<CommandInfo>> {
-  let re = regex_for_section(r#""OPTIONS""#);
-  match re.captures(page_text) {
-    Some(captures) => {
-      let content = captures.get(1).unwrap().as_str();
-      let mut args = Vec::new();
-
-      for para in content.split(".PP") {
-        if let Some(end) = para.find(".RE") {
-          let data = &para[0..end];
-          let data = remove_groff_formatting(data);
-          let mut data = data.split(".RS 4");
-          let options = data.next().unwrap();
-          if let Some(desc) = data.next() {
-            args.push(make_arg(options, desc));
-          } else {
-            println!("No indent in description");
-          }
-        }
-      }
-
-      Ok(Some(CommandInfo {
-        args,
-        subcommands: HashMap::new(),
-      }))
-    }
-    None => Ok(None),
-  }
-}
-
 // Copied more or less directly from Fish's `built_command`
-fn make_arg(options: &str, desc: &str) -> Arg {
+fn make_arg(options: &str, desc: &str) -> Option<Arg> {
   let mut forms = Vec::new();
 
   // Unquote the options
@@ -70,7 +70,8 @@ fn make_arg(options: &str, desc: &str) -> Arg {
   for option in delim.split(options) {
     let option = Regex::new(r"\[.*\]").unwrap().replace(option, "");
     // todo this is ridiculously verbose
-    let option = option.trim_matches(" \t\r\n[](){}.,:!".chars().collect::<Vec<_>>().as_slice());
+    let option =
+      option.trim_matches(" \t\r\n[](){}.,:!".chars().collect::<Vec<_>>().as_slice());
     if !option.starts_with('-') || option == "-" || option == "--" {
       continue;
     }
@@ -79,6 +80,11 @@ fn make_arg(options: &str, desc: &str) -> Arg {
       continue;
     }
     forms.push(option.to_owned());
+  }
+
+  if forms.is_empty() {
+    debug!("No options found in {}", options);
+    return None;
   }
 
   let desc = desc.trim().replace("\n", " ");
@@ -94,7 +100,7 @@ fn make_arg(options: &str, desc: &str) -> Arg {
     desc
   };
 
-  Arg { forms, desc }
+  Some(Arg { forms, desc })
 }
 
 // Copied more or less directly from Fish

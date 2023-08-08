@@ -1,15 +1,18 @@
+mod type1;
+
+use anyhow::{anyhow, Result};
+use flate2::bufread::GzDecoder;
+use log::{debug, error, warn};
+use regex::Regex;
 use std::{
-  collections::HashMap,
+  collections::{HashMap, HashSet},
   fs::File,
   io::{BufReader, Read},
+  path::{Path, PathBuf},
+  process::Command,
 };
 
-use flate2::bufread::GzDecoder;
-
-use crate::Result;
-use std::path::Path;
-
-mod parse_man;
+pub use type1::Type1Parser;
 
 #[derive(Debug)]
 pub struct CommandInfo {
@@ -21,6 +24,234 @@ pub struct CommandInfo {
 pub struct Arg {
   pub forms: Vec<String>,
   pub desc: String,
+}
+
+pub fn parse_manpage_at_path<P>(cmd_name: &str, path: P) -> Result<Option<Vec<Arg>>>
+where
+  P: AsRef<Path>,
+{
+  let text = read_manpage(path)?;
+  Ok(parse_manpage_text(cmd_name, text))
+}
+
+pub fn parse_manpage_text<S: AsRef<str>>(cmd_name: &str, text: S) -> Option<Vec<Arg>> {
+  Type1Parser.parse(cmd_name, text.as_ref())
+}
+
+/// Parser to parse options from a man page
+///
+/// TODO possibly get rid of this
+pub trait ManParser {
+  /// Returns a Some if it was able to parse the page, None otherwise
+  fn parse(self, cmd_name: &str, page_text: &str) -> Option<Vec<Arg>>;
+}
+
+pub struct ManParseConfig {
+  manpath: Option<HashSet<PathBuf>>,
+  search_subcommands: bool,
+  excluded_sections: Vec<u8>,
+  excluded_dirs: Vec<PathBuf>,
+  include_commands: Option<Vec<String>>,
+  exclude_commands: Vec<Regex>,
+}
+
+impl ManParseConfig {
+  /// Create a new [Config] with the defaults
+  pub fn new() -> ManParseConfig {
+    ManParseConfig {
+      manpath: None,
+      search_subcommands: false,
+      excluded_sections: Vec::new(),
+      excluded_dirs: Vec::new(),
+      include_commands: None,
+      exclude_commands: Vec::new(),
+    }
+  }
+
+  /// Set the manpath explicitly.
+  ///
+  /// This method tries to canonicalize the paths, so it may fail.
+  pub fn manpath<I, P>(mut self, manpath: I) -> Result<Self>
+  where
+    I: Iterator<Item = P>,
+    P: AsRef<Path>,
+  {
+    self.manpath = Some(
+      manpath
+        .into_iter()
+        .map(|p| std::fs::canonicalize(p))
+        .collect::<Result<_, _>>()?,
+    );
+    Ok(self)
+  }
+
+  /// Search for subcommands (off by default)
+  pub fn search_subcommands(mut self) -> Self {
+    self.search_subcommands = true;
+    self
+  }
+
+  // TODO figure out why fish only seems to use man1, man6, and man8
+  pub fn exclude_sections<I>(mut self, sections: I) -> Self
+  where
+    I: IntoIterator<Item = u8>,
+  {
+    for section in sections {
+      if 1 <= section && section <= 8 {
+        self.excluded_sections.push(section);
+      } else {
+        error!("Tried excluding invalid section (must be 1-8): {}", section);
+      }
+    }
+    self
+  }
+
+  pub fn exclude_dirs<I, P>(mut self, dirs: I) -> Self
+  where
+    I: IntoIterator<Item = P>,
+    P: AsRef<Path>,
+  {
+    for dir in dirs {
+      let path = PathBuf::from(dir.as_ref());
+      if path.exists() {
+        self.excluded_dirs.push(path)
+      } else {
+        error!("Excluded directory does not exist: {}", path.display());
+      }
+    }
+    self
+  }
+
+  /// Only search for specific commands
+  pub fn restrict_to_commands<I, S>(mut self, commands: I) -> Self
+  where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+  {
+    self.include_commands = Some(
+      commands
+        .into_iter()
+        .map(|s| s.as_ref().to_string())
+        .collect(),
+    );
+    self
+  }
+
+  /// Actually do the parsing
+  pub fn parse(self) -> anyhow::Result<HashMap<String, CommandInfo>> {
+    let manpath = self.manpath.or_else(|| get_manpath()).ok_or(anyhow!(
+      "No manpages found. Please explicitly give manpath or set $MANPATH."
+    ))?;
+
+    let included_dirs: Vec<PathBuf> = manpath
+      .into_iter()
+      .filter(|path| !self.excluded_dirs.contains(path))
+      .collect();
+    if included_dirs.is_empty() {
+      return Err(anyhow!("All directories excluded, nowhere to search"));
+    }
+
+    let included_sections = (1..8)
+      .into_iter()
+      .filter(|s| !self.excluded_sections.contains(s))
+      .collect::<Vec<_>>();
+    if included_sections.is_empty() {
+      return Err(anyhow!("All sections excluded, nowhere to search"));
+    }
+
+    let all_manpages = enumerate_manpages(included_dirs, included_sections);
+    let filtered = filter_pages(
+      all_manpages,
+      self.include_commands,
+      &self.exclude_commands,
+      self.search_subcommands,
+    )?;
+
+    let parsed = parse_all_manpages(filtered, self.search_subcommands);
+
+    Ok(parsed)
+  }
+}
+
+fn parse_all_manpages(
+  manpages: Vec<(String, PathBuf)>,
+  search_subcommands: bool,
+) -> HashMap<String, CommandInfo> {
+  let mut res = HashMap::new();
+
+  for (cmd, manpage) in manpages {
+    if let Ok(text) = read_manpage(&manpage) {
+      let cmd_name = get_cmd_name(manpage.as_ref());
+      match parse_manpage_text(&cmd_name, &text) {
+        Some(parsed) => {
+          // todo merge subcommands later instead
+          res.insert(
+            cmd_name,
+            CommandInfo {
+              args: parsed,
+              subcommands: HashMap::new(),
+            },
+          );
+        }
+        None => {
+          error!("Could not parse manpage for {}", cmd_name);
+        }
+      }
+    } else {
+      error!(
+        "Could not read manpage for {} at {}",
+        cmd,
+        manpage.display()
+      )
+    }
+  }
+
+  if search_subcommands {
+    // TODO merge subcommands
+  }
+
+  res
+}
+
+fn filter_pages(
+  all_manpages: Vec<(String, PathBuf)>,
+  include_commands: Option<Vec<String>>,
+  exclude_commands: &[Regex],
+  search_subcommands: bool,
+) -> Result<Vec<(String, PathBuf)>> {
+  let filtered = all_manpages
+    .into_iter()
+    .filter(|(cmd, path)| {
+      let include = match &include_commands {
+        Some(target_cmds) => {
+          if search_subcommands {
+            // Any man page whose file name starts with one of the commands
+            // could be a possible subcommand
+            target_cmds.iter().any(|t| cmd.starts_with(t))
+          } else {
+            target_cmds.contains(&cmd)
+          }
+        }
+        None => true,
+      };
+      let exclude = exclude_commands.iter().any(|r| r.is_match(cmd));
+
+      if include {
+        debug!("Found man page for {} at {}", cmd, path.display());
+      }
+      if include && exclude {
+        warn!("Command was both explicitly included and excluded: {}", cmd);
+      }
+
+      include && !exclude
+    })
+    .collect::<Vec<_>>();
+
+  if filtered.is_empty() {
+    Err(anyhow!("All commands were either excluded or not included"))
+  } else {
+    Ok(filtered)
+  }
 }
 
 pub fn read_manpage<P>(manpage_path: P) -> Result<String>
@@ -47,14 +278,102 @@ where
   }
 }
 
-pub fn parse_manpage_at_path<P>(cmd_name: &str, path: P) -> Result<CommandInfo>
-where
-  P: AsRef<Path>,
-{
-  read_manpage(path).and_then(|text| parse_manpage_text(cmd_name, &text))
+/// Get the command that a manpage is for, given its path
+///
+/// e.g. `/foo/cowsay.1.txt -> "cowsay"`
+fn get_cmd_name(manpage_path: &Path) -> String {
+  let file_name = manpage_path
+    .file_name()
+    .unwrap()
+    .to_string_lossy()
+    .replace(std::char::REPLACEMENT_CHARACTER, "");
+  // The file name will be something like foo.1.gz, we only want foo
+  file_name
+    .split(".")
+    .nth(0)
+    .unwrap_or_else(|| &file_name)
+    .to_string()
 }
 
-pub fn parse_manpage_text(cmd_name: &str, text: &str) -> Result<CommandInfo> {
-  let res = parse_man::parse(cmd_name, text)?;
-  Ok(res.unwrap())
+/// Try to detect if the given command is actually a subcommand.
+///
+/// Given command `git-log`, the result would be `Some(vec!["git", "log"])`
+fn detect_subcommand(cmd_name: &str, text: &str) -> Option<Vec<String>> {
+  let parts = cmd_name.split("-").collect::<Vec<_>>();
+  let as_sub_cmd = parts.join(" ");
+  if text.contains(&as_sub_cmd) {
+    Some(parts.iter().map(|s| s.to_string()).collect())
+  } else {
+    None
+  }
+}
+
+/// Find the search path for man
+///
+/// Looks at `$MANPATH` first, then tries running `manpath`, then `man --path`.
+fn get_manpath() -> Option<HashSet<PathBuf>> {
+  fn split_path(path: &str) -> HashSet<PathBuf> {
+    path
+      .split(":")
+      .filter_map(|path| {
+        let path_buf = PathBuf::from(path);
+        if path_buf.exists() {
+          Some(std::fs::canonicalize(path_buf).unwrap())
+        } else {
+          None
+        }
+      })
+      .collect()
+  }
+
+  if let Ok(manpath) = std::env::var("MANPATH") {
+    Some(split_path(&manpath))
+  } else {
+    fn from_cmd(cmd: &mut Command) -> Option<HashSet<PathBuf>> {
+      cmd
+        .output()
+        .ok()
+        .map(|out| split_path(std::str::from_utf8(&out.stdout).unwrap()))
+    }
+    from_cmd(&mut Command::new("manpath"))
+      .or_else(|| from_cmd(Command::new("man").arg("--path")))
+  }
+}
+
+/// Enumerate all manpages given a list of directories to search in. Returns the
+/// command names and their paths.
+///
+/// ## Arguments
+/// * `manpath` - Directories that man searches in (`$MANPATH/manpath/man
+///   --path`). Inside each of these directories should be `man1`, `man2`, etc.
+///   folders. The paths should be canonical.
+/// * `include_sections` - Man sections to include (1-8)
+fn enumerate_manpages<I, P>(
+  manpath: I,
+  include_sections: Vec<u8>,
+) -> Vec<(String, PathBuf)>
+where
+  I: IntoIterator<Item = P>,
+  P: AsRef<Path>,
+{
+  let mut res = vec![];
+
+  let section_names: Vec<_> =
+    include_sections.iter().map(|n| format!("man{n}")).collect();
+
+  for parent_path in manpath.into_iter().filter(|p| p.as_ref().is_dir()) {
+    for section_name in &section_names {
+      let section_dir = parent_path.as_ref().join(section_name);
+      if let Ok(manpages) = std::fs::read_dir(section_dir) {
+        for manpage in manpages.filter_map(|p| p.ok()) {
+          let path = manpage.path();
+          res.push((get_cmd_name(&path), path));
+        }
+      }
+    }
+  }
+
+  res.sort();
+
+  res
 }

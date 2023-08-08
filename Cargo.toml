@@ -14,6 +14,7 @@ edition = "2021"
 anyhow = "1.0"
 clap = { version = "4.3", features = ["derive"] }
 flate2 = "1.0"
+log = "0.4"
 regex = "1.9"
 
 [dev-dependencies]
