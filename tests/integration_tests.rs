@@ -45,10 +45,14 @@ fn test() {
     }
 
     let expected = fs::read(exp_file.path()).unwrap();
-    let got = fs::read(got_file).unwrap();
+    let got = fs::read(&got_file).unwrap();
     if expected != got {
       not_match.push(file_name);
+      continue;
     }
+
+    // Delete outputted file if it succeeded, since we don't need it anymore
+    fs::remove_file(got_file).unwrap();
   }
 
   if !not_generated.is_empty() {

@@ -36,6 +36,11 @@ struct CLI {
   #[arg(short, long)]
   verbose: bool,
 
+  /// Search for subcommands
+  /// TODO implement
+  #[arg(short = 's', long = "subcommands")]
+  search_subcommands: bool,
+
   /// Directories to exclude from search
   #[arg(short = 'D', long, value_delimiter = ',')]
   dirs_exclude: Option<Vec<PathBuf>>,
