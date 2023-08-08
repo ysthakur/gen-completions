@@ -1,5 +1,5 @@
 use std::{
-  collections::{HashMap, HashSet},
+  collections::HashMap,
   fs::File,
   io::{BufReader, Read},
 };

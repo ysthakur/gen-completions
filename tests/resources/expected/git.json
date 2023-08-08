@@ -1,0 +1,96 @@
+{
+  "git": [
+    {
+      "forms": ["-v", "--version"],
+      "description": "Prints the Git suite version that the git program came from. .sp This option ..."
+    },
+    {
+      "forms": ["-h", "--help"],
+      "description": "Prints the synopsis and a list of the most commonly used commands. If the opt..."
+    },
+    {
+      "forms": ["-C"],
+      "description": "Run as if git was started in <path> instead of the current working directory...."
+    },
+    {
+      "forms": ["-c"],
+      "description": "Pass a configuration parameter to the command. The value given will override ..."
+    },
+    {
+      "forms": ["--config-env"],
+      "description": "Like -c <name>=<value>, give configuration variable <name> a value, where <en..."
+    },
+    {
+      "forms": ["--exec-path"],
+      "description": "Path to wherever your core Git programs are installed. This can also be contr..."
+    },
+    {
+      "forms": ["--html-path"],
+      "description": "Print the path, without trailing slash, where Git's HTML documentation is ins..."
+    },
+    {
+      "forms": ["--man-path"],
+      "description": "Print the manpath (see man(1)) for the man pages for this version of Git and ..."
+    },
+    {
+      "forms": ["--info-path"],
+      "description": "Print the path where the Info files documenting this version of Git are insta..."
+    },
+    {
+      "forms": ["-p", "--paginate"],
+      "description": "Pipe all output into less (or if set, $PAGER) if standard output is a termina..."
+    },
+    {
+      "forms": ["-P", "--no-pager"],
+      "description": "Do not pipe Git output into a pager"
+    },
+    {
+      "forms": ["--git-dir"],
+      "description": "Set the path to the repository (\".git\" directory). This can also be controlle..."
+    },
+    {
+      "forms": ["--work-tree"],
+      "description": "Set the path to the working tree. It can be an absolute path or a path relati..."
+    },
+    {
+      "forms": ["--namespace"],
+      "description": "Set the Git namespace. See gitnamespaces(7) for more details. Equivalent to s..."
+    },
+    {
+      "forms": ["--bare"],
+      "description": "Treat the repository as a bare repository. If GIT_DIR environment is not set,..."
+    },
+    {
+      "forms": ["--no-replace-objects"],
+      "description": "Do not use replacement refs to replace Git objects. See git-replace(1) for mo..."
+    },
+    {
+      "forms": ["--literal-pathspecs"],
+      "description": "Treat pathspecs literally (i.e. no globbing, no pathspec magic). This is equi..."
+    },
+    {
+      "forms": ["--glob-pathspecs"],
+      "description": "Add \"glob\" magic to all pathspec. This is equivalent to setting the GIT_GLOB_..."
+    },
+    {
+      "forms": ["--noglob-pathspecs"],
+      "description": "Add \"literal\" magic to all pathspec. This is equivalent to setting the GIT_NO..."
+    },
+    {
+      "forms": ["--icase-pathspecs"],
+      "description": "Add \"icase\" magic to all pathspec. This is equivalent to setting the GIT_ICAS..."
+    },
+    {
+      "forms": ["--no-optional-locks"],
+      "description": "Do not perform optional operations that require locks. This is equivalent to ..."
+    },
+    {
+      "forms": ["--list-cmds"],
+      "description": "List commands by group. This is an internal/experimental option and may chang..."
+    },
+    {
+      "forms": ["--attr-source"],
+      "description": "Read gitattributes from <tree-ish> instead of the worktree. See gitattributes..."
+    }
+  ]
+}

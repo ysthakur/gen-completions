@@ -18,7 +18,7 @@ fn test() {
   let expected_dir = test_resources.join("expected");
   let out_dir = test_resources.join("tmp");
   if !out_dir.exists() {
-    fs::create_dir(&out_dir);
+    fs::create_dir(&out_dir).unwrap();
   }
 
   // The man-completions binary to test
