@@ -19,7 +19,7 @@ pub struct CommandInfo {
 
 #[derive(Debug)]
 pub struct Arg {
-  pub forms: HashSet<String>,
+  pub forms: Vec<String>,
   pub desc: String,
 }
 
@@ -39,7 +39,8 @@ where
         decoder.read_to_string(&mut str)?;
         Ok(str)
       } else {
-        todo!()
+        let contents = std::fs::read_to_string(path)?;
+        Ok(contents)
       }
     }
     None => todo!(),

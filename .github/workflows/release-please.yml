@@ -19,7 +19,7 @@ jobs:
           package-name: man-completions
           release-type: rust
       - uses: actions/checkout@v3
-        if: ${{ steps.release.outputs.release_created }}
+        # if: ${{ steps.release.outputs.release_created }}
         # Publish to Cargo if release created
       - run: cargo publish --verbose --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
         # if: ${{ steps.release.outputs.release_created }}

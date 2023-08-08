@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use crate::parse::CommandInfo;
 
 use super::Completions;
-use crate::Result;
+use anyhow::Result;
 
 /// Indentation to use (for readability)
 const INDENT: &str = "    ";
@@ -81,7 +81,7 @@ fn generate_fn(
   if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{}{}", INDENT, "local line\n"));
   }
-  out.push_str(&format!("{INDENT} _arguments -C \\\n"));
+  out.push_str(&format!("{INDENT}_arguments -C \\\n"));
   for opt in cmd_info.args {
     for form in opt.forms {
       let text = quote(&format!("{form}[{}]", opt.desc));

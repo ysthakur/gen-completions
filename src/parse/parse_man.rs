@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use regex::{Regex, RegexBuilder};
 
@@ -54,7 +54,7 @@ pub fn parse(_cmd_name: &str, page_text: &str) -> Result<Option<CommandInfo>> {
 
 // Copied more or less directly from Fish's `built_command`
 fn make_arg(options: &str, desc: &str) -> Arg {
-  let mut forms = HashSet::new();
+  let mut forms = Vec::new();
 
   // Unquote the options
   let options = if options.len() == 1 {
@@ -78,7 +78,7 @@ fn make_arg(options: &str, desc: &str) -> Arg {
     if Regex::new(r"\{\}\(\)").unwrap().is_match(option) {
       continue;
     }
-    forms.insert(option.to_owned());
+    forms.push(option.to_owned());
   }
 
   let desc = desc.trim().replace("\n", " ");

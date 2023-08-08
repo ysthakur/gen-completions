@@ -1,4 +1,12 @@
+// use assert_cmd::prelude::*;
 use std::{env, fs, path::PathBuf, process::Command};
+
+use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
+
+const BIN_NAME: &str = "man-completions";
+
+/// Shells to test
+const SHELLS: [&str; 2] = ["zsh", "json"];
 
 #[test]
 fn test() {
@@ -9,11 +17,19 @@ fn test() {
   let in_dir = test_resources.join("in");
   let expected_dir = test_resources.join("expected");
   let out_dir = test_resources.join("tmp");
+  if !out_dir.exists() {
+    fs::create_dir(&out_dir);
+  }
 
   // The man-completions binary to test
-  let bin = env::var("CARGO_BIN_EXE_man-completions").unwrap();
-  let status = Command::new(bin).env("MANPATH", in_dir).status().unwrap();
-  assert!(status.success());
+  for shell in SHELLS {
+    let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
+    let cmd =
+      cmd
+        .env("MANPATH", &in_dir)
+        .args(["--shell", shell, "--out", &out_dir.display().to_string()]);
+    cmd.assert().success();
+  }
 
   // Files that didn't get generated
   let mut not_generated = Vec::new();

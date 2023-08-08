@@ -4,7 +4,7 @@ mod parse;
 use std::{collections::HashMap, path::PathBuf};
 
 use crate::{
-  gen::{zsh::ZshCompletions, Completions},
+  gen::{Completions, JsonCompletions, ZshCompletions},
   parse::{parse_manpage_at_path, parse_manpage_text, read_manpage, CommandInfo},
 };
 use anyhow::{anyhow, Result};
@@ -16,6 +16,8 @@ use std::process::Command;
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {
   Zsh,
+  /// Not a shell, but output the parsed options as JSON
+  Json,
 }
 
 /// Generate completions from manpages
@@ -61,9 +63,9 @@ fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
 }
 
 fn gen_shell(shell: Shell, manpages: HashMap<String, CommandInfo>, out_dir: &Path) -> Result<()> {
-  // println!("{:?}", &manpages);
   match shell {
-    Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages.into_iter(), out_dir),
+    Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages, out_dir),
+    Shell::Json => <JsonCompletions as Completions>::generate_all(manpages, out_dir),
   }
 }
 
