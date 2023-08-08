@@ -32,41 +32,52 @@ impl Completions for JsonCompletions {
 /// * `indent` - The indentation level (how many subcommands in we are)
 /// * `last` - Whether this is the last command at this level. Used for deciding
 ///   whether or not to put a trailing comma
-fn generate_cmd(cmd: &str, cmd_info: CommandInfo, indent: usize, last: bool, out: &mut String) {
+fn generate_cmd(
+  cmd: &str,
+  cmd_info: CommandInfo,
+  indent: usize,
+  last: bool,
+  out: &mut String,
+) {
   let cmd = quote(cmd);
   // Avoid trailing commas
   let end = if last { "]" } else { "]," };
   let mut args = cmd_info.args.into_iter();
   if let Some(mut arg) = args.next() {
-    print_indent(indent, out, format!("{cmd}: ["));
+    println_indent(indent, out, format!("{cmd}: ["));
     while {
-      print_indent(indent + 1, out, "{");
+      println_indent(indent + 1, out, "{");
       let forms = arg
         .forms
         .iter()
         .map(|a| quote(&a))
         .collect::<Vec<_>>()
         .join(", ");
-      print_indent(indent + 2, out, format!(r#""forms": [{forms}],"#));
-      print_indent(
-        indent + 2,
-        out,
-        format!(r#""description": {}"#, quote(&arg.desc)),
-      );
+      print_indent(indent + 2, out, format!(r#""forms": [{forms}]"#));
+      if let Some(desc) = &arg.desc {
+        out.push_str(",\n");
+        println_indent(
+          indent + 2,
+          out,
+          format!(r#""description": {}"#, quote(desc)),
+        );
+      } else {
+        out.push_str("\n");
+      }
       if let Some(next) = args.next() {
-        print_indent(indent + 1, out, "},");
+        println_indent(indent + 1, out, "},");
         arg = next;
         true
       } else {
         // Avoid trailing comma
-        print_indent(indent + 1, out, "}");
+        println_indent(indent + 1, out, "}");
         false
       }
     } {}
-    print_indent(indent, out, end);
+    println_indent(indent, out, end);
   } else {
     // If no arguments, print `"cmd": []` on a single line
-    print_indent(indent, out, format!("{cmd}: [{end}"))
+    println_indent(indent, out, format!("{cmd}: [{end}"))
   }
 }
 
@@ -74,9 +85,14 @@ fn quote(s: &str) -> String {
   format!("\"{}\"", s.replace('\\', r"\\").replace('"', "\\\""))
 }
 
-/// Helper to print at a specific indentation level
+/// Like print_indent, but with a newline
+fn println_indent<S: AsRef<str>>(indent: usize, out: &mut String, text: S) {
+  print_indent(indent, out, text);
+  out.push_str("\n");
+}
+
+/// Helper to print at a specific indentation level with a newline
 fn print_indent<S: AsRef<str>>(indent: usize, out: &mut String, text: S) {
   out.push_str(&INDENT.repeat(indent));
   out.push_str(text.as_ref());
-  out.push_str("\n");
 }

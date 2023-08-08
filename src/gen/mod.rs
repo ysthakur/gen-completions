@@ -21,7 +21,9 @@ pub trait Completions {
   {
     cmds
       .into_iter()
-      .map(|(cmd_name, cmd_info)| <Self as Completions>::generate(cmd_name, cmd_info, &out_dir))
+      .map(|(cmd_name, cmd_info)| {
+        <Self as Completions>::generate(cmd_name, cmd_info, &out_dir)
+      })
       .collect()
   }
 }

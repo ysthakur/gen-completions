@@ -83,8 +83,9 @@ fn generate_fn(
   }
   out.push_str(&format!("{INDENT}_arguments -C \\\n"));
   for opt in cmd_info.args {
+    let desc = opt.desc.unwrap_or_default();
     for form in opt.forms {
-      let text = quote(&format!("{form}[{}]", opt.desc));
+      let text = quote(&format!("{form}[{}]", desc));
       out.push_str(&format!("{INDENT}{INDENT}{text} \\\n"));
     }
   }

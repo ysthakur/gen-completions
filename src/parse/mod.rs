@@ -1,4 +1,5 @@
 mod type1;
+pub(super) mod util;
 
 use anyhow::{anyhow, Result};
 use flate2::bufread::GzDecoder;
@@ -12,8 +13,6 @@ use std::{
   process::Command,
 };
 
-pub use type1::Type1Parser;
-
 #[derive(Debug)]
 pub struct CommandInfo {
   pub args: Vec<Arg>,
@@ -23,7 +22,7 @@ pub struct CommandInfo {
 #[derive(Debug)]
 pub struct Arg {
   pub forms: Vec<String>,
-  pub desc: String,
+  pub desc: Option<String>,
 }
 
 pub fn parse_manpage_at_path<P>(cmd_name: &str, path: P) -> Result<Option<Vec<Arg>>>
@@ -35,15 +34,7 @@ where
 }
 
 pub fn parse_manpage_text<S: AsRef<str>>(cmd_name: &str, text: S) -> Option<Vec<Arg>> {
-  Type1Parser.parse(cmd_name, text.as_ref())
-}
-
-/// Parser to parse options from a man page
-///
-/// TODO possibly get rid of this
-pub trait ManParser {
-  /// Returns a Some if it was able to parse the page, None otherwise
-  fn parse(self, cmd_name: &str, page_text: &str) -> Option<Vec<Arg>>;
+  type1::parse(cmd_name, text.as_ref())
 }
 
 pub struct ManParseConfig {

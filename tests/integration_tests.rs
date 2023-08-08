@@ -69,7 +69,9 @@ fn test() {
       let exp = exp.to_string_lossy();
       let got = out_dir.join(&file_name);
       let got = got.to_string_lossy();
-      println!("Test for {file_name} failed: contents of {got} did not match those of {exp}");
+      println!(
+        "Test for {file_name} failed: contents of {got} did not match those of {exp}"
+      );
       println!("To see the diff, run `diff {exp} {got}`");
       println!("To overwrite the expected file, run `cp {got} {exp}`")
     }
