@@ -5,7 +5,7 @@ use super::{util, Arg};
 /// Ported from Fish's `Type1ManParser`
 ///
 /// todo implement fallback and fallback2 like the Fish script
-pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
+pub fn parse(page_text: &str) -> Option<Vec<Arg>> {
   let re = util::regex_for_section(r#""OPTIONS""#);
   match re.captures(page_text) {
     Some(captures) => {
@@ -27,7 +27,7 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
         } else {
           debug!(
             "No .RE found to end description, para: {}",
-            util::truncate(&para, 40)
+            util::truncate(para, 40)
           );
         }
       }

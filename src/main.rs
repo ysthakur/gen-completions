@@ -24,7 +24,7 @@ enum Shell {
 /// Generate completions from manpages
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
-struct CLI {
+struct Cli {
   /// Directory to output completions to
   #[arg(short, long)]
   out: PathBuf,
@@ -58,13 +58,13 @@ struct CLI {
 fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
   match str::parse::<u8>(s) {
     Ok(num) => {
-      if 1 <= num && num <= 8 {
+      if (1..=8).contains(&num) {
         Ok(num)
       } else {
-        Err("must be between 1 and 8".to_string())
+        Err(String::from("must be between 1 and 8"))
       }
     }
-    _ => Err(format!("should be an int between 1 and 8")),
+    _ => Err(String::from("should be an int between 1 and 8")),
   }
 }
 
@@ -83,7 +83,7 @@ fn gen_shell(
 fn main() -> Result<()> {
   env_logger::init();
 
-  let args = CLI::parse();
+  let args = Cli::parse();
 
   let mut cfg = ManParseConfig::new()
     .exclude_dirs(args.dirs_exclude.unwrap_or_default())

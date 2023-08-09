@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::debug;
 use regex::Regex;
 
 use super::{util, Arg};
@@ -6,7 +6,7 @@ use super::{util, Arg};
 /// Ported from Fish's `Type2ManParser`
 ///
 /// TODO actually test this
-pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
+pub fn parse(page_text: &str) -> Option<Vec<Arg>> {
   let re = util::regex_for_section("OPTIONS");
   match re.captures(page_text) {
     Some(captures) => {
@@ -29,12 +29,12 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
         };
         let data = util::remove_groff_formatting(data);
         let data = data.trim();
-        let arg = if let Some((options, desc)) = data.split_once("\n") {
+        let arg = if let Some((options, desc)) = data.split_once('\n') {
           util::make_arg(options, Some(desc))
         } else {
           // todo should this be an error instead?
-          debug!("No description, data: {}", util::truncate(&data, 40));
-          util::make_arg(&data, None)
+          debug!("No description, data: {}", util::truncate(data, 40));
+          util::make_arg(data, None)
         };
         if let Some(arg) = arg {
           args.push(arg);

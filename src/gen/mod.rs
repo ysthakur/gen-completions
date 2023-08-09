@@ -22,11 +22,8 @@ pub trait Completions {
     I: IntoIterator<Item = (String, CommandInfo)>,
     P: AsRef<Path>,
   {
-    cmds
-      .into_iter()
-      .map(|(cmd_name, cmd_info)| {
-        <Self as Completions>::generate(cmd_name, cmd_info, &out_dir)
-      })
-      .collect()
+    cmds.into_iter().try_for_each(|(cmd_name, cmd_info)| {
+      <Self as Completions>::generate(cmd_name, cmd_info, &out_dir)
+    })
   }
 }

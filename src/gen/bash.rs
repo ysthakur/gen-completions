@@ -9,14 +9,14 @@ pub struct BashCompletions;
 
 impl Completions for BashCompletions {
   /// Generate a completion file for Bash
-  fn generate<P>(cmd_name: String, cmd_info: CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(cmd_name: String, _cmd_info: CommandInfo, out_dir: P) -> Result<()>
   where
     P: AsRef<Path>,
   {
     // TODO make option to not overwrite file
     let comp_name = format!("_comp_cmd_{cmd_name}");
 
-    let mut res = format!("#!/usr/bin/env bash\n\n");
+    let mut res = String::from("#!/usr/bin/env bash\n\n");
     res.push_str(&format!("function {comp_name} {{\n"));
     res.push_str("\tCOMPREPLY=()\n");
     res.push_str("\tcase ${COMP_CWORD} in\n");

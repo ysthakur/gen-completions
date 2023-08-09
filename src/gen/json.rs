@@ -51,7 +51,7 @@ fn generate_cmd(
       let forms = arg
         .forms
         .iter()
-        .map(|a| quote(&a))
+        .map(|a| quote(a))
         .collect::<Vec<_>>()
         .join(", ");
       print_indent(indent + 3, out, format!(r#""forms": [{forms}]"#));
@@ -63,7 +63,7 @@ fn generate_cmd(
           format!(r#""description": {}"#, quote(desc)),
         );
       } else {
-        out.push_str("\n");
+        out.push('\n');
       }
       if let Some(next) = args.next() {
         println_indent(indent + 2, out, "},");
@@ -109,7 +109,7 @@ fn quote(s: &str) -> String {
 /// Like print_indent, but with a newline
 fn println_indent<S: AsRef<str>>(indent: usize, out: &mut String, text: S) {
   print_indent(indent, out, text);
-  out.push_str("\n");
+  out.push('\n');
 }
 
 /// Helper to print at a specific indentation level with a newline

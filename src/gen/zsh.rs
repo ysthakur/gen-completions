@@ -70,7 +70,7 @@ fn generate_fn(
   pos: usize,
   fn_name: &str,
 ) {
-  out.push_str("\n");
+  out.push('\n');
   out.push_str(&format!("function {fn_name} {{\n"));
   if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{}{}", INDENT, "local line\n"));
@@ -108,7 +108,7 @@ fn generate_fn(
     }
     out.push_str(&format!("{INDENT}esac\n"));
   } else {
-    out.push_str("\n");
+    out.push('\n');
   }
 
   out.push_str("}\n");

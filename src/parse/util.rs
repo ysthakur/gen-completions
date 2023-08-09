@@ -66,7 +66,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(".B", "")
     .replace(r"\-", "-")
     .replace(".I", "")
-    .replace("\u{C}", "")
+    .replace('\u{C}', "")
     .replace(r"\(cq", "'")
     .replace(r"\(aq", "'"); // Added by me, not from Fish. May need to remove all \(xx
 
@@ -77,7 +77,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
 
 /// Truncates to at most `len` characters, as well as trims and removes newlines
 pub fn truncate(s: &str, len: usize) -> String {
-  let s = s.trim().replace("\n", " ");
+  let s = s.trim().replace('\n', " ");
   if s.len() > len {
     s[0..len].to_string()
   } else {
@@ -93,9 +93,9 @@ pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
   let options = options.trim();
   let options = if options.len() < 2 {
     options
-  } else if options.starts_with('"') && options.ends_with('"') {
-    &options[1..options.len() - 1]
-  } else if options.starts_with('\'') && options.ends_with('\'') {
+  } else if (options.starts_with('"') && options.ends_with('"'))
+    || (options.starts_with('\'') && options.ends_with('\''))
+  {
     &options[1..options.len() - 1]
   } else {
     options
@@ -131,7 +131,7 @@ pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
 
   match desc {
     Some(desc) => {
-      let desc = desc.trim().replace("\n", " ");
+      let desc = desc.trim().replace('\n', " ");
       let desc = desc.trim_end_matches('.');
       // Remove bogus escapes
       let desc = desc.replace(r"\'", "").replace(r"\.", "");
