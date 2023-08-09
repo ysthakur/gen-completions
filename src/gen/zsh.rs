@@ -81,31 +81,40 @@ fn generate_fn(
   if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{}{}", INDENT, "local line\n"));
   }
-  out.push_str(&format!("{INDENT}_arguments -C \\\n"));
+  if cmd_info.subcommands.is_empty() {
+    out.push_str(&format!("{INDENT}_arguments"));
+  } else {
+    out.push_str(&format!("{INDENT}_arguments -C"));
+  }
   for opt in cmd_info.args {
     let desc = opt.desc.unwrap_or_default();
     for form in opt.forms {
       let text = quote(&format!("{form}[{}]", desc));
-      out.push_str(&format!("{INDENT}{INDENT}{text} \\\n"));
+      out.push_str(" \\\n");
+      out.push_str(&format!("{INDENT}{INDENT}{text}"));
     }
   }
 
   if !cmd_info.subcommands.is_empty() {
-    let mut sub_cmds = String::new();
-    for sub_cmd in cmd_info.subcommands.keys() {
-      sub_cmds.push_str(sub_cmd);
-    }
-    out.push_str(&format!("{INDENT}{INDENT}':({sub_cmds})' \\\n"))
-  }
+    let sub_cmds = cmd_info
+      .subcommands
+      .keys()
+      .map(|s| s.to_string())
+      .collect::<Vec<_>>()
+      .join(" ");
+    out.push_str(&format!(" \\\n{INDENT}{INDENT}': :({sub_cmds})'"));
+    out.push_str(&format!(" \\\n{INDENT}{INDENT}'*::arg:->args'\n"));
 
-  out.push_str(&format!("{INDENT}{INDENT}'*::args->args'\n"));
-
-  if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{INDENT}case $line[{}] in\n", pos + 1));
     for sub_cmd in cmd_info.subcommands.keys() {
-      out.push_str(&format!("{INDENT}{INDENT}{sub_cmd}) {sub_cmd};;"))
+      out.push_str(&format!(
+        "{INDENT}{INDENT}{sub_cmd}) {}_{};;\n",
+        fn_name, sub_cmd
+      ))
     }
     out.push_str(&format!("{INDENT}esac\n"));
+  } else {
+    out.push_str("\n");
   }
 
   out.push_str("}\n");
