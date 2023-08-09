@@ -7,7 +7,7 @@ use flate2::bufread::GzDecoder;
 use log::{debug, error, trace, warn};
 use regex::Regex;
 use std::{
-  collections::{HashMap, HashSet},
+  collections::{hash_map::Entry, HashMap, HashSet},
   fs::File,
   io::{BufReader, Read},
   path::{Path, PathBuf},
@@ -181,6 +181,26 @@ impl ManParseConfig {
   }
 }
 
+fn insert_cmd(
+  subcommands: &mut HashMap<String, CommandInfo>,
+  mut cmd_parts: Vec<String>,
+  mut args: Vec<Arg>,
+) {
+  let head = cmd_parts.remove(0);
+  let cmd = match subcommands.entry(head) {
+    Entry::Occupied(o) => o.into_mut(),
+    Entry::Vacant(v) => v.insert(CommandInfo {
+      args: Vec::new(),
+      subcommands: HashMap::new(),
+    }),
+  };
+  if cmd_parts.is_empty() {
+    cmd.args.append(&mut args);
+  } else {
+    insert_cmd(&mut cmd.subcommands, cmd_parts, args);
+  }
+}
+
 fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, CommandInfo> {
   let mut res = HashMap::new();
 
@@ -190,14 +210,10 @@ fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, Comma
       match parse_manpage_text(&cmd_name, &text) {
         Some(parsed) => {
           trace!("Parsing man page for {} at {}", cmd_name, manpage.display());
-          // todo merge subcommands later instead
-          res.insert(
-            cmd_name,
-            CommandInfo {
-              args: parsed,
-              subcommands: HashMap::new(),
-            },
-          );
+          match detect_subcommand(&cmd_name, &text) {
+            Some(cmd_parts) => insert_cmd(&mut res, cmd_parts, parsed),
+            None => insert_cmd(&mut res, vec![cmd_name], parsed),
+          }
         }
         None => {
           error!("Could not parse manpage for {}", cmd_name);
@@ -211,8 +227,6 @@ fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, Comma
       )
     }
   }
-
-  // TODO merge subcommands
 
   res
 }

@@ -102,8 +102,8 @@ fn generate_fn(
 
   if !cmd_info.subcommands.is_empty() {
     out.push_str(&format!("{INDENT}case $line[{}] in\n", pos + 1));
-    for _sub_cmd in cmd_info.subcommands.keys() {
-      todo!()
+    for sub_cmd in cmd_info.subcommands.keys() {
+      out.push_str(&format!("{INDENT}{INDENT}{sub_cmd}) {sub_cmd};;"))
     }
     out.push_str(&format!("{INDENT}esac\n"));
   }
