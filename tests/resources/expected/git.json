@@ -3,7 +3,7 @@
     "args": [
       {
         "forms": ["-v", "--version"],
-        "description": "Prints the Git suite version that the git program came from. .sp This option ..."
+        "description": "Prints the Git suite version that the git program came from. This option is i..."
       },
       {
         "forms": ["-h", "--help"],
@@ -191,7 +191,7 @@
           },
           {
             "forms": ["-P", "--perl-regexp"],
-            "description": "Consider the limiting patterns to be Perl-compatible regular expressions. .sp..."
+            "description": "Consider the limiting patterns to be Perl-compatible regular expressions. Sup..."
           },
           {
             "forms": ["--remove-empty"],
@@ -343,7 +343,7 @@
           },
           {
             "forms": ["--sparse"],
-            "description": "All commits that are walked are included. .sp Note that without --full-histor..."
+            "description": "All commits that are walked are included. Note that without --full-history, t..."
           },
           {
             "forms": ["--simplify-merges"],

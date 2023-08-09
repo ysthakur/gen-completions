@@ -11,9 +11,16 @@ static MAX_DESC_LEN: usize = 80;
 
 static ELLIPSIS: &str = "...";
 
+/// Match roff numeric expressions
+pub static NUM_RE: &str = r"(\d+(\.\d)?)";
+
 /// Note to future self: Don't bother making this return a Cow since the
 /// description will usually be trimmed anyway
 pub fn trim_desc(desc: String) -> String {
+  // Remove extra spaces after sentence ends
+  let re = Regex::new(r"\.\s+").unwrap();
+  let desc = re.replace_all(&desc, ". ");
+
   // TODO port the sentence-splitting part too
   // https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py#L211
   if desc.len() > MAX_DESC_LEN {
@@ -45,7 +52,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
   // also, fish uses a slightly different regex: `.PD( \d+)`, check if that's fine
   let re = Regex::new(r"\.PD \d+").unwrap();
   let data = re.replace_all(&data, "");
-  data
+  let data = data
     .replace(".BI", "")
     .replace(".BR", "")
     .replace("0.5i", "")
@@ -61,9 +68,11 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(".I", "")
     .replace("\u{C}", "")
     .replace(r"\(cq", "'")
-    .replace(r"\(aq", "'") // Added by me, not from Fish. May need to remove all \(xx
+    .replace(r"\(aq", "'"); // Added by me, not from Fish. May need to remove all \(xx
 
-  // TODO .sp is being left behind, see how Fish handles it
+  // todo Fish doesn't do this, see how it handles .sp
+  let re = Regex::new(&format!(r"\.sp( {}v?)?", NUM_RE)).unwrap();
+  re.replace_all(&data, "").to_string()
 }
 
 /// Truncates to at most `len` characters, as well as trims and removes newlines

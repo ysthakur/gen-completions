@@ -15,7 +15,7 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
 
       // todo this diverges from the Fish impl for splitting, check if it's okay
       // need to see more samples of manpages of this kind
-      let para_re = Regex::new(r"\.[IT]P( \d+(\.\d)?i?)?").unwrap();
+      let para_re = Regex::new(&format!(r"\.[IT]P( {}i?)?", util::NUM_RE)).unwrap();
       let para_end = Regex::new(r"\.(IP|TP|UNINDENT|UN|SH)").unwrap();
 
       let mut paras = para_re.split(content);
