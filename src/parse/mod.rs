@@ -1,4 +1,5 @@
 mod type1;
+mod type2;
 pub(super) mod util;
 
 use anyhow::{anyhow, Result};
@@ -34,7 +35,8 @@ where
 }
 
 pub fn parse_manpage_text<S: AsRef<str>>(cmd_name: &str, text: S) -> Option<Vec<Arg>> {
-  type1::parse(cmd_name, text.as_ref())
+  let text = text.as_ref();
+  type1::parse(cmd_name, text).or_else(|| type2::parse(cmd_name, text))
 }
 
 pub struct ManParseConfig {
@@ -241,7 +243,7 @@ fn filter_pages(
       if include {
         debug!("Found man page for {} at {}", cmd, path.display());
       }
-      if include && exclude {
+      if exclude && include_commands.is_some() {
         warn!("Command was both explicitly included and excluded: {}", cmd);
       }
 

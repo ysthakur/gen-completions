@@ -24,10 +24,13 @@ fn test() {
   // The man-completions binary to test
   for shell in SHELLS {
     let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
-    let cmd =
-      cmd
-        .env("MANPATH", &in_dir)
-        .args([shell, "--out", &out_dir.display().to_string()]);
+    let cmd = cmd
+      .env("MANPATH", &in_dir)
+      .env(
+        "RUST_LOG",
+        env::var("RUST_LOG").unwrap_or(String::from("warn")),
+      )
+      .args([shell, "--out", &out_dir.display().to_string()]);
     cmd.assert().success();
   }
 

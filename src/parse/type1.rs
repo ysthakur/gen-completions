@@ -1,5 +1,4 @@
 use log::debug;
-use regex::Regex;
 
 use super::{util, Arg};
 
@@ -13,80 +12,28 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Arg>> {
       let content = captures.get(1).unwrap().as_str();
       let mut args = Vec::new();
 
-      for para in content.split(".PP") {
+      let mut paras = content.split(".PP");
+      paras.next(); // Discard the part before the first option
+      for para in paras {
         if let Some(end) = para.find(".RE") {
           let data = &para[0..end];
           let data = util::remove_groff_formatting(data);
           let mut data = data.split(".RS 4");
           let options = data.next().unwrap();
           let desc = data.next();
-          if let Some(arg) = make_arg(options, desc) {
+          if let Some(arg) = util::make_arg(options, desc) {
             args.push(arg);
           }
+        } else {
+          debug!(
+            "No .RE found to end description, para: {}",
+            util::truncate(&para, 40)
+          );
         }
       }
 
       Some(args)
     }
     None => None,
-  }
-}
-
-/// Parse the line of options after .PP and the description after it
-///
-/// Ported from Fish's `built_command`
-fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
-  // Unquote the options string
-  let options = options.trim();
-  let options = if options.len() < 2 {
-    options
-  } else if options.starts_with('"') && options.ends_with('"') {
-    &options[1..options.len() - 1]
-  } else if options.starts_with('\'') && options.ends_with('\'') {
-    &options[1..options.len() - 1]
-  } else {
-    options
-  };
-
-  let mut forms = Vec::new();
-  let delim = Regex::new(r#"[ ,="|]"#).unwrap();
-  for option in delim.split(options) {
-    let option = Regex::new(r"\[.*\]").unwrap().replace(option, "");
-    // todo Fish doesn't replace <.*> so maybe this is wrong
-    let option = Regex::new(r"<.*>").unwrap().replace(&option, "");
-    // todo this is ridiculously verbose
-    let option =
-      option.trim_matches(" \t\r\n[](){}.:!".chars().collect::<Vec<_>>().as_slice());
-    if !option.starts_with('-') || option == "-" || option == "--" {
-      continue;
-    }
-    if Regex::new(r"\{\}\(\)").unwrap().is_match(option) {
-      continue;
-    }
-    forms.push(option.to_owned());
-  }
-
-  if forms.is_empty() {
-    let desc = if let Some(desc) = desc {
-      &desc.trim()[..40]
-    } else {
-      ""
-    };
-    debug!("No options found in '{}', desc: '{}'", options.trim(), desc);
-    return None;
-  }
-
-  match desc {
-    Some(desc) => {
-      let desc = desc.trim().replace("\n", " ");
-      let desc = desc.trim_end_matches('.');
-      // Remove bogus escapes
-      let desc = desc.replace(r"\'", "").replace(r"\.", "");
-
-      let desc = util::trim_desc(desc);
-      let desc = if desc.is_empty() { None } else { Some(desc) };
-      Some(Arg { forms, desc })
-    }
-    None => Some(Arg { forms, desc: None }),
   }
 }
