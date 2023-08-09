@@ -6,7 +6,7 @@ function _test1 {
         '-h[Show help information]' \
         '--h[Show help information]' \
         '-v[Verbose output]' \
-        '--verbose<foo[Verbose output]' \
+        '--verbose[Verbose output]' \
         '--loud[Verbose output]' \
         ': :(sub1)' \
         '*::arg:->args'

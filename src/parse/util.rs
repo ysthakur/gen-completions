@@ -106,7 +106,7 @@ pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
   for option in delim.split(options) {
     let option = Regex::new(r"\[.*\]").unwrap().replace(option, "");
     // todo Fish doesn't replace <.*> so maybe this is wrong
-    let option = Regex::new(r"<.*>").unwrap().replace(&option, "");
+    let option = Regex::new(r"<.*").unwrap().replace(&option, "");
     // todo this is ridiculously verbose
     let option =
       option.trim_matches(" \t\r\n[](){}.:!".chars().collect::<Vec<_>>().as_slice());
