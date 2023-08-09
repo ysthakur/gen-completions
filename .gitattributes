@@ -1,5 +1,5 @@
 Cargo.lock linguist-generated=true
 flake.lock linguist-generated=true
 
-tests/resources/in/* linguist-generated=true
+tests/resources/in/**/* linguist-generated=true
 tests/resources/expected/* linguist-generated=true
