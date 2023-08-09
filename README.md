@@ -19,3 +19,6 @@ Things to do:
 - Port type 3, type 4, darwin, scdoc, and degroff parsers
 - Don't generate unnecessary files in tests
 - Allow configuring tests more, test .gz, test excluding/including commands, directories, sections
+
+The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
+so to configure that, set the `RUST_LOG` environment variable (the link has instructions).

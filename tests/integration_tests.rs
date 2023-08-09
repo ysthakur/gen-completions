@@ -1,7 +1,12 @@
 // use assert_cmd::prelude::*;
-use std::{env, fs, path::PathBuf, process::Command};
+use std::{
+  env, fs,
+  path::PathBuf,
+  process::{Command, Stdio},
+};
 
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
+use log::trace;
 
 const BIN_NAME: &str = "man-completions";
 
@@ -28,9 +33,10 @@ fn test() {
       .env("MANPATH", &in_dir)
       .env(
         "RUST_LOG",
-        env::var("RUST_LOG").unwrap_or(String::from("warn")),
+        env::var("RUST_LOG").unwrap_or(String::from("debug")),
       )
-      .args([shell, "--out", &out_dir.display().to_string()]);
+      .args([shell, "--out", &out_dir.display().to_string()])
+      .stderr(Stdio::inherit());
     cmd.assert().success();
   }
 
