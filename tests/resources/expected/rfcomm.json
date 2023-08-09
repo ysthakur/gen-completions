@@ -1,40 +1,43 @@
 {
-  "rfcomm": [
-    {
-      "forms": ["-h"],
-      "description": "Gives a list of possible commands"
-    },
-    {
-      "forms": ["-a"],
-      "description": "Prints information about all configured RFCOMM devices"
-    },
-    {
-      "forms": ["-r"],
-      "description": "Switch TTY into raw mode (doesn't work with \"bind\")"
-    },
-    {
-      "forms": ["-i"],
-      "description": "The command is applied to device hciX, which must be the name or the address ..."
-    },
-    {
-      "forms": ["-A"],
-      "description": "Enable authentication"
-    },
-    {
-      "forms": ["-E"],
-      "description": "Enable encryption"
-    },
-    {
-      "forms": ["-S"],
-      "description": "Secure connection"
-    },
-    {
-      "forms": ["-C"],
-      "description": "Become the central of a piconet"
-    },
-    {
-      "forms": ["-L"],
-      "description": "Set linger timeout"
-    }
-  ]
+  "rfcomm": {
+    "args": [
+      {
+        "forms": ["-h"],
+        "description": "Gives a list of possible commands"
+      },
+      {
+        "forms": ["-a"],
+        "description": "Prints information about all configured RFCOMM devices"
+      },
+      {
+        "forms": ["-r"],
+        "description": "Switch TTY into raw mode (doesn't work with \"bind\")"
+      },
+      {
+        "forms": ["-i"],
+        "description": "The command is applied to device hciX, which must be the name or the address ..."
+      },
+      {
+        "forms": ["-A"],
+        "description": "Enable authentication"
+      },
+      {
+        "forms": ["-E"],
+        "description": "Enable encryption"
+      },
+      {
+        "forms": ["-S"],
+        "description": "Secure connection"
+      },
+      {
+        "forms": ["-C"],
+        "description": "Become the central of a piconet"
+      },
+      {
+        "forms": ["-L"],
+        "description": "Set linger timeout"
+      }
+    ],
+    "subcommands": {}
+  }
 }

@@ -41,23 +41,24 @@ fn generate_cmd(
 ) {
   let cmd = quote(cmd);
   // Avoid trailing commas
-  let end = if last { "]" } else { "]," };
+  let end = if last { "}" } else { "}," };
   let mut args = cmd_info.args.into_iter();
   if let Some(mut arg) = args.next() {
-    println_indent(indent, out, format!("{cmd}: ["));
+    println_indent(indent, out, format!("{cmd}: {{"));
+    println_indent(indent + 1, out, "\"args\": [");
     while {
-      println_indent(indent + 1, out, "{");
+      println_indent(indent + 2, out, "{");
       let forms = arg
         .forms
         .iter()
         .map(|a| quote(&a))
         .collect::<Vec<_>>()
         .join(", ");
-      print_indent(indent + 2, out, format!(r#""forms": [{forms}]"#));
+      print_indent(indent + 3, out, format!(r#""forms": [{forms}]"#));
       if let Some(desc) = &arg.desc {
         out.push_str(",\n");
         println_indent(
-          indent + 2,
+          indent + 3,
           out,
           format!(r#""description": {}"#, quote(desc)),
         );
@@ -65,19 +66,39 @@ fn generate_cmd(
         out.push_str("\n");
       }
       if let Some(next) = args.next() {
-        println_indent(indent + 1, out, "},");
+        println_indent(indent + 2, out, "},");
         arg = next;
         true
       } else {
         // Avoid trailing comma
-        println_indent(indent + 1, out, "}");
+        println_indent(indent + 2, out, "}");
         false
       }
     } {}
+    println_indent(indent + 1, out, "],");
+
+    let mut subcmds = cmd_info.subcommands.into_iter();
+    if let Some((mut name, mut info)) = subcmds.next() {
+      println_indent(indent + 1, out, "\"subcommands\": {");
+      loop {
+        if let Some(next) = subcmds.next() {
+          generate_cmd(&name, info, indent + 2, false, out);
+          name = next.0;
+          info = next.1;
+        } else {
+          generate_cmd(&name, info, indent + 2, true, out);
+          break;
+        }
+      }
+      println_indent(indent + 1, out, "}");
+    } else {
+      println_indent(indent + 1, out, "\"subcommands\": {}");
+    }
+
     println_indent(indent, out, end);
   } else {
-    // If no arguments, print `"cmd": []` on a single line
-    println_indent(indent, out, format!("{cmd}: [{end}"))
+    // If no arguments, print `"cmd": {}` on a single line
+    println_indent(indent, out, format!("{cmd}: {{{end}"))
   }
 }
 
