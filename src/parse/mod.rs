@@ -1,6 +1,6 @@
 mod type1;
 mod type2;
-pub(super) mod util;
+pub(self) mod util;
 
 use anyhow::{anyhow, Result};
 use flate2::bufread::GzDecoder;

@@ -2,7 +2,7 @@ use std::{fs, path::Path};
 
 use crate::parse::CommandInfo;
 
-use super::Completions;
+use super::{util, Completions};
 use anyhow::Result;
 
 /// Indentation to use (for readability)
@@ -23,7 +23,7 @@ impl Completions for ZshCompletions {
   ///     _argument -C \
   ///         '-h[Show help]' \
   ///         '--help[Show help]' \
-  ///         ':(pull checkout)' \ # Assume only git pull and checkout exist
+  ///         ': :(pull checkout)' \ # Assume only git pull and checkout exist
   ///         '*::args->args'
   ///
   ///     case $line[1] in
@@ -55,12 +55,6 @@ impl Completions for ZshCompletions {
   }
 }
 
-/// Wrap in single quotes (and escape single quotes inside) so that it's safe
-/// for Zsh to read
-fn quote(s: &str) -> String {
-  format!("'{}'", s.replace("'", r#"'"'"'"#))
-}
-
 /// Generate a completion function for a command/subcommand
 ///
 /// ## Arguments
@@ -89,7 +83,7 @@ fn generate_fn(
   for opt in cmd_info.args {
     let desc = opt.desc.unwrap_or_default();
     for form in opt.forms {
-      let text = quote(&format!("{form}[{}]", desc));
+      let text = util::quote(&format!("{form}[{}]", desc));
       out.push_str(" \\\n");
       out.push_str(&format!("{INDENT}{INDENT}{text}"));
     }

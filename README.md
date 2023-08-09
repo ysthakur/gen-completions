@@ -4,11 +4,16 @@
 [![Latest version](https://img.shields.io/crates/v/man-completions.svg)](https://crates.io/crates/man-completions)
 [![License](https://img.shields.io/crates/l/man-completions.svg)](./LICENSE.md)
 
-This is an unfinished project to parse manpages to get completions for Zsh, and other shells.
+This is an unfinished project to parse manpages to get completions for Zsh, Bash,
+Nushell, and other shells. Currently, only Zsh files get generated. Bash is in
+progress, and I'll try to add Nu soon.
+
 Also generates JSON files, in case your shell isn't supported, so you can process
 it and generate completions yourself.
 
-Detects subcommands (very basic): If a manpage is named `foo-bar`, that's detect
+For examples of the kinds of files this generates, look at the [tests folder](./tests/resources/expected/).
+
+Detects subcommands (very basic): If a manpage is named `foo-bar`, that's detected
 as the subcommand `foo bar`.
 
 Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py)

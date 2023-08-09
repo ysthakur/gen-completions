@@ -2,7 +2,7 @@ mod gen;
 mod parse;
 
 use crate::{
-  gen::{Completions, JsonCompletions, ZshCompletions},
+  gen::{BashCompletions, Completions, JsonCompletions, ZshCompletions},
   parse::{CommandInfo, ManParseConfig},
 };
 use anyhow::Result;
@@ -15,6 +15,8 @@ use std::{collections::HashMap, path::PathBuf};
 enum Shell {
   /// Generate completions for Zsh
   Zsh,
+  /// Generate completions for Bash
+  Bash,
   /// Not a shell, but output the parsed options as JSON
   Json,
 }
@@ -74,6 +76,7 @@ fn gen_shell(
   match shell {
     Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages, out_dir),
     Shell::Json => <JsonCompletions as Completions>::generate_all(manpages, out_dir),
+    Shell::Bash => <BashCompletions as Completions>::generate_all(manpages, out_dir),
   }
 }
 

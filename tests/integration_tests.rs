@@ -6,12 +6,11 @@ use std::{
 };
 
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
-use log::trace;
 
 const BIN_NAME: &str = "man-completions";
 
 /// Shells to test
-const SHELLS: [&str; 2] = ["zsh", "json"];
+const SHELLS: [&str; 3] = ["zsh", "json", "bash"];
 
 #[test]
 fn test() {

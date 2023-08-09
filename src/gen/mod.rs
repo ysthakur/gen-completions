@@ -1,4 +1,6 @@
+mod bash;
 mod json;
+pub(self) mod util;
 mod zsh;
 
 use std::path::Path;
@@ -6,6 +8,7 @@ use std::path::Path;
 use crate::parse::CommandInfo;
 use anyhow::Result;
 
+pub use bash::*;
 pub use json::*;
 pub use zsh::*;
 
