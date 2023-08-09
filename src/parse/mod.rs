@@ -39,13 +39,19 @@ pub fn parse_manpage_text<S: AsRef<str>>(cmd_name: &str, text: S) -> Option<Vec<
   type1::parse(cmd_name, text).or_else(|| type2::parse(cmd_name, text))
 }
 
+/// Configuration for parsing the man pages
+///
+/// Note: The properties concerning matching commands try to match the file
+/// names of the man pages, not the command names. If you're trying to match
+/// `git log`, you need to instead try to match `git-log` (since the man page is
+/// named `git-log.1`)
 pub struct ManParseConfig {
   manpath: Option<HashSet<PathBuf>>,
-  search_subcommands: bool,
   excluded_sections: Vec<u8>,
   excluded_dirs: Vec<PathBuf>,
-  include_commands: Option<Vec<String>>,
-  exclude_commands: Vec<Regex>,
+  include_commands: Option<Regex>,
+  exclude_commands: Option<Regex>,
+  not_subcommands: Vec<String>,
 }
 
 impl ManParseConfig {
@@ -53,11 +59,11 @@ impl ManParseConfig {
   pub fn new() -> ManParseConfig {
     ManParseConfig {
       manpath: None,
-      search_subcommands: false,
       excluded_sections: Vec::new(),
       excluded_dirs: Vec::new(),
       include_commands: None,
-      exclude_commands: Vec::new(),
+      exclude_commands: None,
+      not_subcommands: Vec::new(),
     }
   }
 
@@ -76,12 +82,6 @@ impl ManParseConfig {
         .collect::<Result<_, _>>()?,
     );
     Ok(self)
-  }
-
-  /// Whether to search for subcommands (false by default)
-  pub fn search_subcommands(mut self, search: bool) -> Self {
-    self.search_subcommands = search;
-    self
   }
 
   // TODO figure out why fish only seems to use man1, man6, and man8
@@ -115,27 +115,32 @@ impl ManParseConfig {
     self
   }
 
-  /// Only search for specific commands
-  pub fn restrict_to_commands<I, S>(mut self, commands: I) -> Self
-  where
-    I: IntoIterator<Item = S>,
-    S: AsRef<str>,
-  {
-    self.include_commands = Some(
-      commands
-        .into_iter()
-        .map(|s| s.as_ref().to_string())
-        .collect(),
-    );
+  /// Only search for specific commands (by default, all commands are searched
+  /// for).
+  ///
+  /// If a command has been explicitly marked as not being a subcommand
+  /// using [not_subcommands()], then the regex must match the entire man page
+  /// file name stem. Otherwise, it need only match a part at the start, as long
+  /// as there is a `'-'` right after the match.
+  pub fn restrict_to_commands(mut self, regex: Regex) -> Self {
+    self.include_commands = Some(regex);
     self
   }
 
-  pub fn exclude_commands<I>(mut self, regexes: I) -> Self
+  /// Exclude certain commands from being searched for. The regex must match the
+  /// entire man page file name stem (e.g. `/git/` will not exclude `git-log`).
+  pub fn exclude_commands(mut self, regex: Regex) -> Self {
+    self.exclude_commands = Some(regex);
+    self
+  }
+
+  /// Mark commands that you don't want being seen as subcommands
+  pub fn not_subcommands<I>(mut self, cmds: I) -> Self
   where
-    I: IntoIterator<Item = Regex>,
+    I: IntoIterator<Item = String>,
   {
-    for regex in regexes {
-      self.exclude_commands.push(regex);
+    for cmd in cmds {
+      self.not_subcommands.push(cmd);
     }
     self
   }
@@ -166,20 +171,17 @@ impl ManParseConfig {
     let filtered = filter_pages(
       all_manpages,
       self.include_commands,
-      &self.exclude_commands,
-      self.search_subcommands,
+      self.exclude_commands,
+      &self.not_subcommands,
     )?;
 
-    let parsed = parse_all_manpages(filtered, self.search_subcommands);
+    let parsed = parse_all_manpages(filtered);
 
     Ok(parsed)
   }
 }
 
-fn parse_all_manpages(
-  manpages: Vec<(String, PathBuf)>,
-  search_subcommands: bool,
-) -> HashMap<String, CommandInfo> {
+fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, CommandInfo> {
   let mut res = HashMap::new();
 
   for (cmd, manpage) in manpages {
@@ -210,35 +212,44 @@ fn parse_all_manpages(
     }
   }
 
-  if search_subcommands {
-    // TODO merge subcommands
-  }
+  // TODO merge subcommands
 
   res
 }
 
 fn filter_pages(
   all_manpages: Vec<(String, PathBuf)>,
-  include_commands: Option<Vec<String>>,
-  exclude_commands: &[Regex],
-  search_subcommands: bool,
+  include_commands: Option<Regex>,
+  exclude_commands: Option<Regex>,
+  not_subcommands: &[String],
 ) -> Result<Vec<(String, PathBuf)>> {
   let filtered = all_manpages
     .into_iter()
     .filter(|(cmd, path)| {
       let include = match &include_commands {
-        Some(target_cmds) => {
-          if search_subcommands {
-            // Any man page whose file name starts with one of the commands
-            // could be a possible subcommand
-            target_cmds.iter().any(|t| cmd.starts_with(t))
-          } else {
-            target_cmds.contains(&cmd)
+        Some(re) => {
+          match re.find(cmd) {
+            Some(mat) if mat.start() == 0 => {
+              if not_subcommands.contains(cmd) {
+                mat.end() == cmd.len()
+              } else {
+                // If it's a subcommand, then it might only match the start and
+                // have a hyphen after
+                mat.end() == cmd.len() || cmd.chars().nth(mat.end() + 1).unwrap() == '-'
+              }
+            }
+            _ => false,
           }
         }
         None => true,
       };
-      let exclude = exclude_commands.iter().any(|r| r.is_match(cmd));
+      let exclude = match &exclude_commands {
+        Some(re) => re
+          .find(cmd)
+          .map(|mat| mat.start() == 0 && mat.end() == cmd.len())
+          .unwrap_or(false),
+        None => false,
+      };
 
       if include {
         debug!("Found man page for {} at {}", cmd, path.display());

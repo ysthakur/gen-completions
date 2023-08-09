@@ -27,17 +27,8 @@ struct CLI {
   #[arg(short, long)]
   out: PathBuf,
 
-  /// Turn on verbose output
-  #[arg(short, long)]
-  verbose: bool,
-
-  /// Search for subcommands
-  /// TODO implement
-  #[arg(short = 's', long = "subcommands")]
-  search_subcommands: bool,
-
   /// Directories to exclude from search
-  #[arg(short = 'D', long, value_delimiter = ',')]
+  #[arg(short = 'i', long = "ignore", value_delimiter = ',')]
   dirs_exclude: Option<Vec<PathBuf>>,
 
   /// Manpage sections to exclude (1-8)
@@ -46,12 +37,17 @@ struct CLI {
 
   /// Particular commands to generate completions for. If omitted, generates
   /// completions for all found commands.
-  #[arg(short, long, value_delimiter = ',')]
-  cmds: Option<Vec<String>>,
+  #[arg(short, long)]
+  cmds: Option<Regex>,
 
-  /// Commands to exclude (regex)
-  #[arg(short = 'C', long, value_delimiter = ',')]
-  exclude_cmds: Vec<Regex>,
+  /// Commands to exclude (regex).
+  #[arg(short = 'C', long)]
+  exclude_cmds: Option<Regex>,
+
+  /// Commands that should not be treated as subcommands. This is to help deal
+  /// with false positives when detecting subcommands.
+  #[arg(short, long, value_delimiter = ',')]
+  not_subcmds: Vec<String>,
 
   /// Shell to generate completions for
   shell: Shell,
@@ -89,8 +85,11 @@ fn main() -> Result<()> {
   let mut cfg = ManParseConfig::new()
     .exclude_dirs(args.dirs_exclude.unwrap_or_default())
     .exclude_sections(args.sections_exclude)
-    .exclude_commands(args.exclude_cmds)
-    .search_subcommands(args.search_subcommands);
+    .not_subcommands(args.not_subcmds);
+  if let Some(exclude_cmds) = args.exclude_cmds {
+    cfg = cfg.exclude_commands(exclude_cmds);
+  }
+
   if let Some(cmds) = args.cmds {
     cfg = cfg.restrict_to_commands(cmds);
   }
