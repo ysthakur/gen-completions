@@ -326,14 +326,49 @@ fn get_cmd_name(manpage_path: &Path) -> String {
 ///
 /// Given command `git-log`, the result would be `Some(vec!["git", "log"])`
 fn detect_subcommand(cmd_name: &str, text: &str) -> Option<Vec<String>> {
-  let parts = cmd_name.split('-').collect::<Vec<_>>();
-  let as_sub_cmd = parts.join(" ");
-  if parts.len() > 1 && parts.iter().all(|s| !s.is_empty()) && text.contains(&as_sub_cmd)
-  {
-    debug!("Detected {} as subcommand", cmd_name);
-    Some(parts.iter().map(|s| s.to_string()).collect())
-  } else {
+  let mut chars = cmd_name.chars();
+  let mut hyphens = vec![0];
+  for i in 0..cmd_name.len() {
+    if chars.next().unwrap() == '-' {
+      hyphens.push(i + 1);
+    }
+  }
+  hyphens.push(cmd_name.len() + 1);
+  if hyphens.len() == 2 {
     None
+  } else {
+    for poss in all_possible_subcommands(&hyphens, cmd_name) {
+      let as_sub_cmd = poss.join(" ").replace('-', r"\-");
+      if text.contains(&as_sub_cmd) {
+        debug!("Detected {} as subcommand {}", cmd_name, as_sub_cmd);
+        return Some(poss.into_iter().map(String::from).collect());
+      }
+    }
+    None
+  }
+}
+
+fn all_possible_subcommands<'a>(hyphens: &[usize], cmd: &'a str) -> Vec<Vec<&'a str>> {
+  if hyphens.len() == 2 {
+    Vec::new()
+  } else {
+    let mut res = Vec::new();
+
+    for i in 1..hyphens.len() - 1 {
+      let mid = hyphens[i];
+      let mut all_right = all_possible_subcommands(&hyphens[i..], cmd);
+      all_right.push(vec![&cmd[mid..hyphens[hyphens.len() - 1] - 1]]);
+      for right in all_right {
+        let mut all_left = all_possible_subcommands(&hyphens[..i + 1], cmd);
+        all_left.push(vec![&cmd[hyphens[0]..mid - 1]]);
+        for mut left in all_left {
+          left.extend_from_slice(&right);
+          res.push(left);
+        }
+      }
+    }
+
+    res
   }
 }
 

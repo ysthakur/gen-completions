@@ -50,7 +50,7 @@ impl Completions for ZshCompletions {
     let comp_name = format!("_{}", cmd_name);
     let mut res = Output::new(String::from("\t"));
     res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
-    generate_fn(&cmd_name, cmd_info, &mut res, 0, &comp_name);
+    generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
     fs::write(
       out_dir.as_ref().join(format!("{}.zsh", comp_name)),
       res.text(),
@@ -89,11 +89,7 @@ fn generate_fn(
 
   out.indent();
   for opt in cmd_info.args.iter() {
-    let desc = if let Some(desc) = &opt.desc {
-      &*desc
-    } else {
-      ""
-    };
+    let desc = if let Some(desc) = &opt.desc { desc } else { "" };
     for form in opt.forms.iter() {
       let text = util::quote_bash(format!("{}[{}]", form, desc));
       out.writeln(" \\");
@@ -129,7 +125,7 @@ fn generate_fn(
 
   for (sub_cmd, sub_cmd_info) in cmd_info.subcommands.iter() {
     generate_fn(
-      &sub_cmd,
+      sub_cmd,
       sub_cmd_info,
       out,
       pos + 1,

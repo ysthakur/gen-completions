@@ -20,7 +20,7 @@ impl Completions for JsonCompletions {
     let mut res = Output::new(String::from("  "));
     res.writeln("{");
     res.indent();
-    generate_cmd(&cmd_name, cmd_info, true, &mut res);
+    generate_cmd(cmd_name, cmd_info, true, &mut res);
     res.dedent();
     res.writeln("}");
     fs::write(
@@ -86,11 +86,11 @@ fn generate_cmd(cmd: &str, cmd_info: &CommandInfo, last: bool, out: &mut Output)
       out.indent();
       loop {
         if let Some(next) = subcmds.next() {
-          generate_cmd(&name, &info, false, out);
+          generate_cmd(name, info, false, out);
           name = next.0;
           info = next.1;
         } else {
-          generate_cmd(&name, &info, true, out);
+          generate_cmd(name, info, true, out);
           break;
         }
       }
