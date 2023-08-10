@@ -1,6 +1,6 @@
 mod bash;
 mod json;
-pub(self) mod util;
+mod util;
 mod zsh;
 
 use std::path::Path;

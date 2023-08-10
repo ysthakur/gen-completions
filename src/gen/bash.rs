@@ -2,7 +2,13 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
-use crate::{gen::Completions, parse::CommandInfo};
+use crate::{
+  gen::{
+    util::{quote_bash, Output},
+    Completions,
+  },
+  parse::CommandInfo,
+};
 
 pub struct BashCompletions;
 
@@ -15,16 +21,20 @@ impl Completions for BashCompletions {
     // TODO make option to not overwrite file
     let comp_name = format!("_comp_cmd_{cmd_name}");
 
-    let mut res = String::from("#!/usr/bin/env bash\n\n");
-    res.push_str(&format!("function {comp_name} {{\n"));
-    res.push_str("\tCOMPREPLY=()\n");
-    res.push_str("\tcase ${COMP_CWORD} in\n");
+    let mut res = Output::new(String::from("\t"));
+    res.writeln("#!/usr/bin/env bash\n");
+    res.writeln(&format!("function {} {{", comp_name));
+    res.writeln("COMPREPLY=()");
+    res.writeln("case ${COMP_CWORD} in");
     // generate_fn(&cmd_name, cmd_info, &mut res, 0, &comp_name);
-    res.push_str("\tesac\n");
-    res.push_str("\treturn 0\n");
-    res.push_str("}\n");
+    res.writeln("esac");
+    res.writeln("return 0");
+    res.writeln("}");
 
-    fs::write(out_dir.as_ref().join(format!("_{cmd_name}.bash")), res)?;
+    fs::write(
+      out_dir.as_ref().join(format!("_{}.bash", cmd_name)),
+      res.text(),
+    )?;
     Ok(())
   }
 }

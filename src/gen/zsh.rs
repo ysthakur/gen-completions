@@ -2,13 +2,11 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
+use super::util::Output;
 use crate::{
   gen::{util, Completions},
   parse::CommandInfo,
 };
-
-/// Indentation to use (for readability)
-const INDENT: &str = "    ";
 
 pub struct ZshCompletions;
 
@@ -49,10 +47,14 @@ impl Completions for ZshCompletions {
     P: AsRef<Path>,
   {
     // TODO make option to not overwrite file
-    let comp_name = format!("_{cmd_name}");
-    let mut res = format!("#compdef {comp_name} {cmd_name}\n");
+    let comp_name = format!("_{}", cmd_name);
+    let mut res = Output::new(String::from("\t"));
+    res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
     generate_fn(&cmd_name, cmd_info, &mut res, 0, &comp_name);
-    fs::write(out_dir.as_ref().join(format!("{comp_name}.zsh")), res)?;
+    fs::write(
+      out_dir.as_ref().join(format!("{}.zsh", comp_name)),
+      res.text(),
+    )?;
     Ok(())
   }
 }
@@ -68,26 +70,30 @@ impl Completions for ZshCompletions {
 fn generate_fn(
   _cmd_name: &str,
   cmd_info: CommandInfo,
-  out: &mut String,
+  out: &mut Output,
   pos: usize,
   fn_name: &str,
 ) {
-  out.push('\n');
-  out.push_str(&format!("function {fn_name} {{\n"));
+  out.write("\n");
+  out.writeln(format!("function {} {{", fn_name));
+  out.indent();
+
   if !cmd_info.subcommands.is_empty() {
-    out.push_str(&format!("{}{}", INDENT, "local line\n"));
+    out.writeln("local line");
   }
   if cmd_info.subcommands.is_empty() {
-    out.push_str(&format!("{INDENT}_arguments"));
+    out.write("_arguments");
   } else {
-    out.push_str(&format!("{INDENT}_arguments -C"));
+    out.write("_arguments -C");
   }
+
+  out.indent();
   for opt in cmd_info.args {
     let desc = opt.desc.unwrap_or_default();
     for form in opt.forms {
-      let text = util::quote(&format!("{form}[{}]", desc));
-      out.push_str(" \\\n");
-      out.push_str(&format!("{INDENT}{INDENT}{text}"));
+      let text = util::quote_bash(format!("{}[{}]", form, desc));
+      out.writeln(" \\");
+      out.write(text);
     }
   }
 
@@ -98,22 +104,24 @@ fn generate_fn(
       .map(|s| s.to_string())
       .collect::<Vec<_>>()
       .join(" ");
-    out.push_str(&format!(" \\\n{INDENT}{INDENT}': :({sub_cmds})'"));
-    out.push_str(&format!(" \\\n{INDENT}{INDENT}'*::arg:->args'\n"));
+    out.writeln(" \\");
+    out.writeln(format!("': :({})' \\", sub_cmds));
+    out.writeln("'*::arg:->args'");
+    out.dedent();
 
-    out.push_str(&format!("{INDENT}case $line[{}] in\n", pos + 1));
+    out.writeln(format!("case $line[{}] in", pos + 1));
+    out.indent();
     for sub_cmd in cmd_info.subcommands.keys() {
-      out.push_str(&format!(
-        "{INDENT}{INDENT}{sub_cmd}) {}_{};;\n",
-        fn_name, sub_cmd
-      ))
+      out.writeln(format!("{sub_cmd}) {}_{};;", fn_name, sub_cmd))
     }
-    out.push_str(&format!("{INDENT}esac\n"));
+    out.dedent();
+    out.writeln("esac");
   } else {
-    out.push('\n');
+    out.write("\n");
   }
 
-  out.push_str("}\n");
+  out.dedent();
+  out.writeln("}");
 
   for (sub_cmd, sub_cmd_info) in cmd_info.subcommands {
     generate_fn(
@@ -121,7 +129,7 @@ fn generate_fn(
       sub_cmd_info,
       out,
       pos + 1,
-      &format!("{fn_name}_{sub_cmd}"),
+      &format!("{}_{}", fn_name, sub_cmd),
     );
   }
 }

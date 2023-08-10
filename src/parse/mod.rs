@@ -1,6 +1,6 @@
 mod type1;
 mod type2;
-pub(self) mod util;
+mod util;
 
 use std::{
   collections::{hash_map::Entry, HashMap, HashSet},
@@ -12,7 +12,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use flate2::bufread::GzDecoder;
-use log::{debug, error, trace, warn};
+use log::{debug, error, info, warn};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -206,14 +206,12 @@ fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, Comma
   for (cmd, manpage) in manpages {
     if let Ok(text) = read_manpage(&manpage) {
       let cmd_name = get_cmd_name(&manpage);
+      info!("Parsing man page for {} at {}", cmd_name, manpage.display());
       match parse_manpage_text(&text) {
-        Some(parsed) => {
-          trace!("Parsing man page for {} at {}", cmd_name, manpage.display());
-          match detect_subcommand(&cmd_name, &text) {
-            Some(cmd_parts) => insert_cmd(&mut res, cmd_parts, parsed),
-            None => insert_cmd(&mut res, vec![cmd_name], parsed),
-          }
-        }
+        Some(parsed) => match detect_subcommand(&cmd_name, &text) {
+          Some(cmd_parts) => insert_cmd(&mut res, cmd_parts, parsed),
+          None => insert_cmd(&mut res, vec![cmd_name], parsed),
+        },
         None => {
           error!("Could not parse manpage for {}", cmd_name);
         }

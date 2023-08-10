@@ -32,7 +32,7 @@ fn test() {
       .env("MANPATH", &in_dir)
       .env(
         "RUST_LOG",
-        env::var("RUST_LOG").unwrap_or(String::from("debug")),
+        env::var("RUST_LOG").unwrap_or(String::from("info")),
       )
       .args([shell, "--out", &out_dir.display().to_string()])
       .stderr(Stdio::inherit());
