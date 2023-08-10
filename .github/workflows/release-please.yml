@@ -18,6 +18,8 @@ jobs:
         with:
           package-name: man-completions
           release-type: rust
+          bump-minor-pre-major: true
+          bump-patch-for-minor-pre-major: true
       - uses: actions/checkout@v3
         if: ${{ steps.release.outputs.release_created }}
         # Publish to Cargo if release created
