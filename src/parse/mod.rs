@@ -12,7 +12,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use flate2::bufread::GzDecoder;
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -246,7 +246,7 @@ fn filter_pages(
               } else {
                 // If it's a subcommand, then it might only match the start and
                 // have a hyphen after
-                mat.end() == cmd.len() || cmd.chars().nth(mat.end() + 1).unwrap() == '-'
+                mat.end() == cmd.len() || cmd.chars().nth(mat.end()).unwrap() == '-'
               }
             }
             _ => false,
@@ -285,6 +285,7 @@ where
   P: AsRef<Path>,
 {
   let path = manpage_path.as_ref();
+  trace!("Reading man page at {}", path.display());
   match path.extension() {
     Some(ext) => {
       if ext == "gz" {
@@ -327,7 +328,9 @@ fn get_cmd_name(manpage_path: &Path) -> String {
 fn detect_subcommand(cmd_name: &str, text: &str) -> Option<Vec<String>> {
   let parts = cmd_name.split('-').collect::<Vec<_>>();
   let as_sub_cmd = parts.join(" ");
-  if text.contains(&as_sub_cmd) {
+  if parts.len() > 1 && parts.iter().all(|s| !s.is_empty()) && text.contains(&as_sub_cmd)
+  {
+    debug!("Detected {} as subcommand", cmd_name);
     Some(parts.iter().map(|s| s.to_string()).collect())
   } else {
     None

@@ -13,13 +13,13 @@ pub use zsh::*;
 use crate::parse::CommandInfo;
 
 pub trait Completions {
-  fn generate<P>(cmd_name: String, cmd_info: CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(cmd_name: &str, cmd_info: &CommandInfo, out_dir: P) -> Result<()>
   where
     P: AsRef<Path>;
 
-  fn generate_all<I, P>(cmds: I, out_dir: P) -> Result<()>
+  fn generate_all<'a, I, P>(cmds: I, out_dir: P) -> Result<()>
   where
-    I: IntoIterator<Item = (String, CommandInfo)>,
+    I: Iterator<Item = (&'a String, &'a CommandInfo)>,
     P: AsRef<Path>,
   {
     cmds.into_iter().try_for_each(|(cmd_name, cmd_info)| {

@@ -13,7 +13,7 @@ impl Completions for JsonCompletions {
   /// Generate JSON representing the parsed options
   ///
   /// This should probably use a real JSON library but whatever
-  fn generate<P>(cmd_name: String, cmd_info: CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(cmd_name: &str, cmd_info: &CommandInfo, out_dir: P) -> Result<()>
   where
     P: AsRef<Path>,
   {
@@ -37,11 +37,11 @@ impl Completions for JsonCompletions {
 /// * `indent` - The indentation level (how many subcommands in we are)
 /// * `last` - Whether this is the last command at this level. Used for deciding
 ///   whether or not to put a trailing comma
-fn generate_cmd(cmd: &str, cmd_info: CommandInfo, last: bool, out: &mut Output) {
+fn generate_cmd(cmd: &str, cmd_info: &CommandInfo, last: bool, out: &mut Output) {
   let cmd = quote(cmd);
   // Avoid trailing commas
   let end = if last { "}" } else { "}," };
-  let mut args = cmd_info.args.into_iter();
+  let mut args = cmd_info.args.iter();
   if let Some(mut arg) = args.next() {
     out.writeln(format!("{cmd}: {{"));
     out.indent();
@@ -80,17 +80,17 @@ fn generate_cmd(cmd: &str, cmd_info: CommandInfo, last: bool, out: &mut Output) 
     out.dedent();
     out.writeln("],");
 
-    let mut subcmds = cmd_info.subcommands.into_iter();
+    let mut subcmds = cmd_info.subcommands.iter();
     if let Some((mut name, mut info)) = subcmds.next() {
       out.writeln("\"subcommands\": {");
       out.indent();
       loop {
         if let Some(next) = subcmds.next() {
-          generate_cmd(&name, info, false, out);
+          generate_cmd(&name, &info, false, out);
           name = next.0;
           info = next.1;
         } else {
-          generate_cmd(&name, info, true, out);
+          generate_cmd(&name, &info, true, out);
           break;
         }
       }

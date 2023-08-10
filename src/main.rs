@@ -21,7 +21,7 @@ enum Shell {
   Zsh,
   /// Generate completions for Bash
   Bash,
-  /// Not a shell, but output the parsed options as JSON
+  /// Output parsed options as JSON
   Json,
 }
 
@@ -55,8 +55,9 @@ struct Cli {
   #[arg(short, long, value_delimiter = ',')]
   not_subcmds: Vec<String>,
 
-  /// Shell to generate completions for
-  shell: Shell,
+  /// Shell(s) to generate completions for
+  #[arg(short, long, value_delimiter = ',', required = true)]
+  shells: Vec<Shell>,
 }
 
 fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
@@ -74,13 +75,17 @@ fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
 
 fn gen_shell(
   shell: Shell,
-  manpages: HashMap<String, CommandInfo>,
+  manpages: &HashMap<String, CommandInfo>,
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
-    Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages, out_dir),
-    Shell::Json => <JsonCompletions as Completions>::generate_all(manpages, out_dir),
-    Shell::Bash => <BashCompletions as Completions>::generate_all(manpages, out_dir),
+    Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages.iter(), out_dir),
+    Shell::Json => {
+      <JsonCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+    }
+    Shell::Bash => {
+      <BashCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+    }
   }
 }
 
@@ -102,6 +107,10 @@ fn main() -> Result<()> {
   }
 
   let res = cfg.parse()?;
-  gen_shell(args.shell, res, &args.out)?;
+
+  for shell in args.shells {
+    gen_shell(shell, &res, &args.out)?;
+  }
+
   Ok(())
 }

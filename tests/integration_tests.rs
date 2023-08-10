@@ -26,18 +26,21 @@ fn test() {
   }
 
   // The man-completions binary to test
-  for shell in SHELLS {
-    let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
-    let cmd = cmd
-      .env("MANPATH", &in_dir)
-      .env(
-        "RUST_LOG",
-        env::var("RUST_LOG").unwrap_or(String::from("info")),
-      )
-      .args([shell, "--out", &out_dir.display().to_string()])
-      .stderr(Stdio::inherit());
-    cmd.assert().success();
-  }
+  let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
+  let cmd = cmd
+    .env("MANPATH", &in_dir)
+    .env(
+      "RUST_LOG",
+      env::var("RUST_LOG").unwrap_or(String::from("info")),
+    )
+    .args([
+      "--shells",
+      &SHELLS.join(","),
+      "--out",
+      &out_dir.display().to_string(),
+    ])
+    .stderr(Stdio::inherit());
+  cmd.assert().success();
 
   // Files that didn't get generated
   let mut not_generated = Vec::new();

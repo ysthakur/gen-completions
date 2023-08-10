@@ -42,7 +42,7 @@ impl Completions for ZshCompletions {
   ///         '-b[Make new branch]'
   /// }
   /// ```
-  fn generate<P>(cmd_name: String, cmd_info: CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(cmd_name: &str, cmd_info: &CommandInfo, out_dir: P) -> Result<()>
   where
     P: AsRef<Path>,
   {
@@ -69,7 +69,7 @@ impl Completions for ZshCompletions {
 ///   named `_foo_bar`
 fn generate_fn(
   _cmd_name: &str,
-  cmd_info: CommandInfo,
+  cmd_info: &CommandInfo,
   out: &mut Output,
   pos: usize,
   fn_name: &str,
@@ -88,9 +88,13 @@ fn generate_fn(
   }
 
   out.indent();
-  for opt in cmd_info.args {
-    let desc = opt.desc.unwrap_or_default();
-    for form in opt.forms {
+  for opt in cmd_info.args.iter() {
+    let desc = if let Some(desc) = &opt.desc {
+      &*desc
+    } else {
+      ""
+    };
+    for form in opt.forms.iter() {
       let text = util::quote_bash(format!("{}[{}]", form, desc));
       out.writeln(" \\");
       out.write(text);
@@ -123,7 +127,7 @@ fn generate_fn(
   out.dedent();
   out.writeln("}");
 
-  for (sub_cmd, sub_cmd_info) in cmd_info.subcommands {
+  for (sub_cmd, sub_cmd_info) in cmd_info.subcommands.iter() {
     generate_fn(
       &sub_cmd,
       sub_cmd_info,

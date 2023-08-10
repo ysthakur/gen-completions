@@ -14,7 +14,7 @@ pub struct BashCompletions;
 
 impl Completions for BashCompletions {
   /// Generate a completion file for Bash
-  fn generate<P>(cmd_name: String, _cmd_info: CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(cmd_name: &str, _cmd_info: &CommandInfo, out_dir: P) -> Result<()>
   where
     P: AsRef<Path>,
   {
