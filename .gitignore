@@ -10,5 +10,6 @@ target/
 .vscode/
 
 .direnv/
+result/ # Nix
 
 tests/resources/tmp/
