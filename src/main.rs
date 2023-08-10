@@ -11,7 +11,10 @@ use clap::{Parser, ValueEnum};
 use regex::Regex;
 
 use crate::{
-  gen::{BashCompletions, Completions, JsonCompletions, ZshCompletions},
+  gen::{
+    BashCompletions, Completions, JsonCompletions, NuCompletions,
+    ZshCompletions,
+  },
   parse::{CommandInfo, ManParseConfig},
 };
 
@@ -21,6 +24,8 @@ enum Shell {
   Zsh,
   /// Generate completions for Bash
   Bash,
+  /// Generate completions for Nushell
+  Nu,
   /// Output parsed options as JSON
   Json,
 }
@@ -79,12 +84,17 @@ fn gen_shell(
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
-    Shell::Zsh => <ZshCompletions as Completions>::generate_all(manpages.iter(), out_dir),
+    Shell::Zsh => {
+      <ZshCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+    }
     Shell::Json => {
       <JsonCompletions as Completions>::generate_all(manpages.iter(), out_dir)
     }
     Shell::Bash => {
       <BashCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+    }
+    Shell::Nu => {
+      <NuCompletions as Completions>::generate_all(manpages.iter(), out_dir)
     }
   }
 }

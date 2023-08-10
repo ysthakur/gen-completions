@@ -10,7 +10,7 @@ use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
 const BIN_NAME: &str = "man-completions";
 
 /// Shells to test
-const SHELLS: [&str; 3] = ["zsh", "json", "bash"];
+const SHELLS: [&str; 4] = ["zsh", "json", "bash", "nu"];
 
 #[test]
 fn test() {

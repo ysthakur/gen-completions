@@ -1,15 +1,14 @@
 mod bash;
 mod json;
+mod nu;
 mod util;
 mod zsh;
 
 use std::path::Path;
 
 use anyhow::Result;
-pub use bash::*;
-pub use json::*;
-pub use zsh::*;
 
+pub use self::{bash::*, json::*, nu::*, zsh::*};
 use crate::parse::CommandInfo;
 
 pub trait Completions {
