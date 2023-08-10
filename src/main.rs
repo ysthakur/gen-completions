@@ -1,15 +1,19 @@
 mod gen;
 mod parse;
 
+use std::{
+  collections::HashMap,
+  path::{Path, PathBuf},
+};
+
+use anyhow::Result;
+use clap::{Parser, ValueEnum};
+use regex::Regex;
+
 use crate::{
   gen::{BashCompletions, Completions, JsonCompletions, ZshCompletions},
   parse::{CommandInfo, ManParseConfig},
 };
-use anyhow::Result;
-use clap::{Parser, ValueEnum};
-use regex::Regex;
-use std::path::Path;
-use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {

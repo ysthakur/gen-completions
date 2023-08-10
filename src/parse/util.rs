@@ -1,8 +1,9 @@
 //! Common utilities for parsers
 
-use super::Arg;
 use log::debug;
 use regex::{Regex, RegexBuilder};
+
+use super::Arg;
 
 /// Maximum length of a description
 ///

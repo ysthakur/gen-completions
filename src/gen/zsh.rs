@@ -1,9 +1,11 @@
 use std::{fs, path::Path};
 
-use crate::parse::CommandInfo;
-
-use super::{util, Completions};
 use anyhow::Result;
+
+use crate::{
+  gen::{util, Completions},
+  parse::CommandInfo,
+};
 
 /// Indentation to use (for readability)
 const INDENT: &str = "    ";

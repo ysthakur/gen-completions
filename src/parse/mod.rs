@@ -2,10 +2,6 @@ mod type1;
 mod type2;
 pub(self) mod util;
 
-use anyhow::{anyhow, Result};
-use flate2::bufread::GzDecoder;
-use log::{debug, error, trace, warn};
-use regex::Regex;
 use std::{
   collections::{hash_map::Entry, HashMap, HashSet},
   fs::File,
@@ -13,6 +9,11 @@ use std::{
   path::{Path, PathBuf},
   process::Command,
 };
+
+use anyhow::{anyhow, Result};
+use flate2::bufread::GzDecoder;
+use log::{debug, error, trace, warn};
+use regex::Regex;
 
 #[derive(Debug)]
 pub struct CommandInfo {

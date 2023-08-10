@@ -1,9 +1,8 @@
 use std::{fs, path::Path};
 
-use crate::parse::CommandInfo;
-
-use super::Completions;
 use anyhow::Result;
+
+use crate::{gen::Completions, parse::CommandInfo};
 
 const INDENT: &str = "  ";
 

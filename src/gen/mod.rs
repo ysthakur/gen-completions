@@ -5,12 +5,12 @@ mod zsh;
 
 use std::path::Path;
 
-use crate::parse::CommandInfo;
 use anyhow::Result;
-
 pub use bash::*;
 pub use json::*;
 pub use zsh::*;
+
+use crate::parse::CommandInfo;
 
 pub trait Completions {
   fn generate<P>(cmd_name: String, cmd_info: CommandInfo, out_dir: P) -> Result<()>
