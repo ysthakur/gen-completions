@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/ysthakur/man-completions/compare/v0.2.0...v0.2.1) (2023-08-11)
+
+
+### Features
+
+* Detect subcommands with hyphens ([d89b021](https://github.com/ysthakur/man-completions/commit/d89b0212fcf58794bf0584f55a59e84db9b29d6e))
+* Explicitly give subcommands ([7146648](https://github.com/ysthakur/man-completions/commit/714664835f299d7e86589cd5d009fd816345f9ea))
+* Nushell support ([00bb571](https://github.com/ysthakur/man-completions/commit/00bb571955444876eb378e0076ce4b2ca09ecf78))
+
 ## [0.2.0](https://github.com/ysthakur/man-completions/compare/v0.1.0...v0.2.0) (2023-08-09)
 
 
