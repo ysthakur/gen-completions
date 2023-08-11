@@ -42,7 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: cargo build --release
+      - run: mv ./target/release/man-completions ./man-completions-${{ matrix.os }}
       - name: Upload executable for ${{ matrix.os }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ needs.release-please.outputs.tag_name }} ./target/release/man-completions
+        run: gh release upload ${{ needs.release-please.outputs.tag_name }} ./man-completions-${{ matrix.os }}
