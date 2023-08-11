@@ -21,10 +21,13 @@ assume that `commit-tree` is a subcommand of `git`. I'm not sure how the Fish
 script generates subcommands--I've been too lazy to do anything but skim over it--but
 I will eventually get around to porting Fish's subcommand detection.
 
-The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
-so to configure that, set the `RUST_LOG` environment variable (the link has instructions).
+## Installation
 
-Flags:
+- Using Cargo: `cargo install man-completions`
+- As a Nix flake: I have no idea
+- Download the right executable for your platform from the latest [release](https://github.com/ysthakur/man-completions/releases)
+
+## Flags
 
 | Short form | Long form | Description |
 |-|-|-|
@@ -38,6 +41,9 @@ Flags:
 | `-h` | `--help` | Show help information |
 
 To search for man pages in a specific set of directories, set `$MANPATH` explicitly.
+
+The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
+so to configure that, set the `RUST_LOG` environment variable (the link has instructions).
 
 Things to do:
 
