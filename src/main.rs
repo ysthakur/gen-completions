@@ -38,13 +38,13 @@ struct Cli {
   #[arg(short, long)]
   out: PathBuf,
 
+  /// Shell(s) to generate completions for
+  #[arg(short, long, value_delimiter = ',', required = true)]
+  shells: Vec<Shell>,
+
   /// Directories to exclude from search
   #[arg(short = 'i', long = "ignore", value_delimiter = ',')]
   dirs_exclude: Option<Vec<PathBuf>>,
-
-  /// Manpage sections to exclude (1-8)
-  #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
-  sections_exclude: Vec<u8>,
 
   /// Particular commands to generate completions for. If omitted, generates
   /// completions for all found commands.
@@ -57,12 +57,30 @@ struct Cli {
 
   /// Commands that should not be treated as subcommands. This is to help deal
   /// with false positives when detecting subcommands.
-  #[arg(short, long, value_delimiter = ',')]
+  #[arg(long, value_delimiter = ',')]
   not_subcmds: Vec<String>,
 
-  /// Shell(s) to generate completions for
-  #[arg(short, long, value_delimiter = ',', required = true)]
-  shells: Vec<Shell>,
+  /// Explicitly tell man-completions which man pages are for which
+  /// subcommands, in case it can't detect them. e.g. `git-commit=git
+  /// commit,foobar=foo bar`.
+  #[arg(long, value_delimiter = ',', value_parser=subcmd_map_parser)]
+  subcmds: Vec<(String, Vec<String>)>,
+
+  /// Manpage sections to exclude (1-8)
+  #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
+  sections_exclude: Vec<u8>,
+}
+
+fn subcmd_map_parser(
+  s: &str,
+) -> core::result::Result<(String, Vec<String>), String> {
+  let Some((page_name, as_subcmd)) = s.split_once("=") else {
+    return Err(String::from(
+      "subcommand mapping should be in the form 'manpage-name=sub command'",
+    ));
+  };
+  let as_subcmd = as_subcmd.split(" ").into_iter().map(String::from).collect();
+  Ok((String::from(page_name), as_subcmd))
 }
 
 fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
@@ -107,11 +125,11 @@ fn main() -> Result<()> {
   let mut cfg = ManParseConfig::new()
     .exclude_dirs(args.dirs_exclude.unwrap_or_default())
     .exclude_sections(args.sections_exclude)
-    .not_subcommands(args.not_subcmds);
+    .not_subcommands(args.not_subcmds)
+    .subcommands(args.subcmds);
   if let Some(exclude_cmds) = args.exclude_cmds {
     cfg = cfg.exclude_commands(exclude_cmds);
   }
-
   if let Some(cmds) = args.cmds {
     cfg = cfg.restrict_to_commands(cmds);
   }

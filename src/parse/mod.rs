@@ -52,6 +52,7 @@ pub struct ManParseConfig {
   include_commands: Option<Regex>,
   exclude_commands: Option<Regex>,
   not_subcommands: Vec<String>,
+  subcommand_map: HashMap<String, Vec<String>>,
 }
 
 impl ManParseConfig {
@@ -64,6 +65,7 @@ impl ManParseConfig {
       include_commands: None,
       exclude_commands: None,
       not_subcommands: Vec::new(),
+      subcommand_map: HashMap::new(),
     }
   }
 
@@ -145,6 +147,19 @@ impl ManParseConfig {
     self
   }
 
+  /// Explicitly add some subcommand mappings. The keys are the man page file
+  /// name stems, and the values are the pieces of the subcommand, e.g.
+  /// `("git-commit", vec!["git", "commit"])`
+  pub fn subcommands<I>(mut self, subcmds: I) -> Self
+  where
+    I: IntoIterator<Item = (String, Vec<String>)>,
+  {
+    for (page_name, as_subcmd) in subcmds {
+      self.subcommand_map.insert(page_name, as_subcmd);
+    }
+    self
+  }
+
   /// Actually do the parsing
   pub fn parse(self) -> anyhow::Result<HashMap<String, CommandInfo>> {
     let manpath = self.manpath.or_else(get_manpath).ok_or(anyhow!(
@@ -174,7 +189,7 @@ impl ManParseConfig {
       &self.not_subcommands,
     )?;
 
-    let parsed = parse_all_manpages(filtered);
+    let parsed = parse_all_manpages(filtered, self.subcommand_map);
 
     Ok(parsed)
   }
@@ -200,7 +215,10 @@ fn insert_cmd(
   }
 }
 
-fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, CommandInfo> {
+fn parse_all_manpages(
+  manpages: Vec<(String, PathBuf)>,
+  mut explicit_subcmds: HashMap<String, Vec<String>>,
+) -> HashMap<String, CommandInfo> {
   let mut res = HashMap::new();
 
   for (cmd, manpage) in manpages {
@@ -208,10 +226,13 @@ fn parse_all_manpages(manpages: Vec<(String, PathBuf)>) -> HashMap<String, Comma
       let cmd_name = get_cmd_name(&manpage);
       info!("Parsing man page for {} at {}", cmd_name, manpage.display());
       match parse_manpage_text(&text) {
-        Some(parsed) => match detect_subcommand(&cmd_name, &text) {
-          Some(cmd_parts) => insert_cmd(&mut res, cmd_parts, parsed),
-          None => insert_cmd(&mut res, vec![cmd_name], parsed),
-        },
+        Some(parsed) => {
+          let as_subcmd = explicit_subcmds.remove(&cmd_name);
+          match as_subcmd.or_else(|| detect_subcommand(&cmd_name, &text)) {
+            Some(cmd_parts) => insert_cmd(&mut res, cmd_parts, parsed),
+            None => insert_cmd(&mut res, vec![cmd_name], parsed),
+          }
+        }
         None => {
           error!("Could not parse manpage for {}", cmd_name);
         }
@@ -246,7 +267,8 @@ fn filter_pages(
               } else {
                 // If it's a subcommand, then it might only match the start and
                 // have a hyphen after
-                mat.end() == cmd.len() || cmd.chars().nth(mat.end()).unwrap() == '-'
+                mat.end() == cmd.len()
+                  || cmd.chars().nth(mat.end()).unwrap() == '-'
               }
             }
             _ => false,
@@ -348,7 +370,10 @@ fn detect_subcommand(cmd_name: &str, text: &str) -> Option<Vec<String>> {
   }
 }
 
-fn all_possible_subcommands<'a>(hyphens: &[usize], cmd: &'a str) -> Vec<Vec<&'a str>> {
+fn all_possible_subcommands<'a>(
+  hyphens: &[usize],
+  cmd: &'a str,
+) -> Vec<Vec<&'a str>> {
   if hyphens.len() == 2 {
     Vec::new()
   } else {
