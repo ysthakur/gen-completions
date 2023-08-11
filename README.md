@@ -12,7 +12,7 @@ it and generate completions yourself.
 
 Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py)
 
-For examples of the kinds of files this generates, look at the [`expected``](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
+For examples of the kinds of files this generates, look at the [`expected`](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
 
 Detects subcommands (very basic): If a manpage is named `git-commit-tree`, it will
 look for the text `git commit tree`, `git-commit tree`, and `git commit-tree` in
