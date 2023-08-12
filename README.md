@@ -33,14 +33,16 @@ I will eventually get around to porting Fish's subcommand detection.
 |-|-|-|
 | `-o` | `--out` | Directory to output files to (required) |
 | `-s` | `--shells` | Shells to generate completions for: `zsh`, `bash`, `nu`, or `json` (required) |
-| `-i` | `--ignore` | Directories to ignore when searching for man pages (comma-separated) |
-| `-S` | `--sections-exclude` | Man sections to exclude (1-8) (comma-separated) |
+| `-d` | `--dirs` | Directories to search in (comma-separated) |
 | `-c` | `--cmds` | Regex to search for only specific commands |
 | `-C` | `--exclude-cmds` | Regex to exclude certain commands |
 | `-n` | `--not-subcmds` | Commands that are not to be treated as subcommands (comma-separated) |
+| | `--subcmds` | Explicitly list subcommands that may not be detected, e.g. `foobar=foo bar,git-commit=git commit` |
 | `-h` | `--help` | Show help information |
 
 To search for man pages in a specific set of directories, set `$MANPATH` explicitly.
+You can also use `--dirs`, but note that `--dirs` will search directly inside the
+given directories, not inside `<dir>/man1`, `<dir>/man2`, etc.
 
 The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
 so to configure that, set the `RUST_LOG` environment variable (the link has instructions).
