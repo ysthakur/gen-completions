@@ -42,11 +42,11 @@ fn generate_cmd(
   out.writeln(format!("export extern \"{}\" [", cmd_name));
   out.indent();
 
-  for arg in cmd_info.args.iter() {
+  for flag in cmd_info.flags.iter() {
     let (mut short, mut long): (Vec<_>, Vec<_>) =
-      arg.forms.iter().partition(|f| f.len() == 2);
+      flag.forms.iter().partition(|f| f.len() == 2);
 
-    let desc_str = if let Some(desc) = &arg.desc {
+    let desc_str = if let Some(desc) = &flag.desc {
       format!(" # {}", desc)
     } else {
       String::from("")

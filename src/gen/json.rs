@@ -13,7 +13,11 @@ impl Completions for JsonCompletions {
   /// Generate JSON representing the parsed options
   ///
   /// This should probably use a real JSON library but whatever
-  fn generate<P>(cmd_name: &str, cmd_info: &CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(
+    cmd_name: &str,
+    cmd_info: &CommandInfo,
+    out_dir: P,
+  ) -> Result<()>
   where
     P: AsRef<Path>,
   {
@@ -37,29 +41,34 @@ impl Completions for JsonCompletions {
 /// * `indent` - The indentation level (how many subcommands in we are)
 /// * `last` - Whether this is the last command at this level. Used for deciding
 ///   whether or not to put a trailing comma
-fn generate_cmd(cmd: &str, cmd_info: &CommandInfo, last: bool, out: &mut Output) {
+fn generate_cmd(
+  cmd: &str,
+  cmd_info: &CommandInfo,
+  last: bool,
+  out: &mut Output,
+) {
   let cmd = quote(cmd);
   // Avoid trailing commas
   let end = if last { "}" } else { "}," };
-  let mut args = cmd_info.args.iter();
-  if let Some(mut arg) = args.next() {
+  let mut flags = cmd_info.flags.iter();
+  if let Some(mut flag) = flags.next() {
     out.writeln(format!("{cmd}: {{"));
     out.indent();
-    out.writeln("\"args\": [");
+    out.writeln("\"flags\": [");
     out.indent();
 
     loop {
       out.writeln("{");
       out.indent();
 
-      let forms = arg
+      let forms = flag
         .forms
         .iter()
         .map(|a| quote(a))
         .collect::<Vec<_>>()
         .join(", ");
       out.write(format!("\"forms\": [{}]", forms));
-      if let Some(desc) = &arg.desc {
+      if let Some(desc) = &flag.desc {
         out.writeln(",");
         out.writeln(format!("\"description\": {}", quote(desc)));
       } else {
@@ -67,9 +76,9 @@ fn generate_cmd(cmd: &str, cmd_info: &CommandInfo, last: bool, out: &mut Output)
       }
 
       out.dedent();
-      if let Some(next) = args.next() {
+      if let Some(next) = flags.next() {
         out.writeln("},");
-        arg = next;
+        flag = next;
       } else {
         // Avoid trailing comma
         out.writeln("}");

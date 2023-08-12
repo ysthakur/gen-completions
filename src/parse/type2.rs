@@ -1,21 +1,22 @@
 use log::debug;
 use regex::Regex;
 
-use super::{util, Arg};
+use super::{util, Flag};
 
 /// Ported from Fish's `Type2ManParser`
 ///
 /// TODO actually test this
-pub fn parse(page_text: &str) -> Option<Vec<Arg>> {
+pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
   let re = util::regex_for_section("OPTIONS");
   match re.captures(page_text) {
     Some(captures) => {
       let content = captures.get(1).unwrap().as_str();
-      let mut args = Vec::new();
+      let mut flags = Vec::new();
 
       // todo this diverges from the Fish impl for splitting, check if it's okay
       // need to see more samples of manpages of this kind
-      let para_re = Regex::new(&format!(r"\.[IT]P( {}i?)?", util::NUM_RE)).unwrap();
+      let para_re =
+        Regex::new(&format!(r"\.[IT]P( {}i?)?", util::NUM_RE)).unwrap();
       let para_end = Regex::new(r"\.(IP|TP|UNINDENT|UN|SH)").unwrap();
 
       let mut paras = para_re.split(content);
@@ -29,19 +30,19 @@ pub fn parse(page_text: &str) -> Option<Vec<Arg>> {
         };
         let data = util::remove_groff_formatting(data);
         let data = data.trim();
-        let arg = if let Some((options, desc)) = data.split_once('\n') {
-          util::make_arg(options, Some(desc))
+        let flag = if let Some((options, desc)) = data.split_once('\n') {
+          util::make_flag(options, Some(desc))
         } else {
           // todo should this be an error instead?
           debug!("No description, data: {}", util::truncate(data, 40));
-          util::make_arg(data, None)
+          util::make_flag(data, None)
         };
-        if let Some(arg) = arg {
-          args.push(arg);
+        if let Some(flag) = flag {
+          flags.push(flag);
         }
       }
 
-      Some(args)
+      Some(flags)
     }
     None => None,
   }

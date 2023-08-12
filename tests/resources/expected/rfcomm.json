@@ -1,6 +1,6 @@
 {
   "rfcomm": {
-    "args": [
+    "flags": [
       {
         "forms": ["-h"],
         "description": "Gives a list of possible commands"

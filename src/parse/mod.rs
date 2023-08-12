@@ -15,17 +15,17 @@ use log::{debug, trace};
 
 #[derive(Debug)]
 pub struct CommandInfo {
-  pub args: Vec<Arg>,
+  pub flags: Vec<Flag>,
   pub subcommands: HashMap<String, CommandInfo>,
 }
 
 #[derive(Debug)]
-pub struct Arg {
+pub struct Flag {
   pub forms: Vec<String>,
   pub desc: Option<String>,
 }
 
-pub fn parse_manpage_text<S>(text: S) -> Option<Vec<Arg>>
+pub fn parse_manpage_text<S>(text: S) -> Option<Vec<Flag>>
 where
   S: AsRef<str>,
 {
@@ -46,7 +46,7 @@ pub fn parse_from(
   cmd_name: &str,
   pre_info: CmdPreInfo,
 ) -> (CommandInfo, Vec<Error>) {
-  let mut args = Vec::new();
+  let mut flags = Vec::new();
   let mut subcommands = HashMap::new();
   let mut errors = Vec::new();
 
@@ -54,7 +54,7 @@ pub fn parse_from(
     match read_manpage(path) {
       Ok(text) => {
         if let Some(mut parsed) = parse_manpage_text(text) {
-          args.append(&mut parsed);
+          flags.append(&mut parsed);
         } else {
           errors.push(anyhow!("Could not parse man page for '{}'", cmd_name))
         }
@@ -77,7 +77,7 @@ pub fn parse_from(
     errors.append(&mut sub_errors);
   }
 
-  (CommandInfo { args, subcommands }, errors)
+  (CommandInfo { flags, subcommands }, errors)
 }
 
 /// Insert a subcommand into a tree of subcommands

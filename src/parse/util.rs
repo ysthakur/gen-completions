@@ -3,7 +3,7 @@
 use log::debug;
 use regex::{Regex, RegexBuilder};
 
-use super::Arg;
+use super::Flag;
 
 /// Maximum length of a description
 ///
@@ -50,7 +50,8 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\fR", "")
     .replace(r"\e", "");
   // TODO check if this one is necessary
-  // also, fish uses a slightly different regex: `.PD( \d+)`, check if that's fine
+  // also, fish uses a slightly different regex: `.PD( \d+)`, check if that's
+  // fine
   let re = Regex::new(r"\.PD \d+").unwrap();
   let data = re.replace_all(&data, "");
   let data = data
@@ -89,7 +90,7 @@ pub fn truncate(s: &str, len: usize) -> String {
 /// Parse the line of options after .PP and the description after it
 ///
 /// Ported from Fish's `built_command`
-pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
+pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
   // Unquote the options string
   let options = options.trim();
   let options = if options.len() < 2 {
@@ -109,8 +110,8 @@ pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
     // todo Fish doesn't replace <.*> so maybe this is wrong
     let option = Regex::new(r"<.*").unwrap().replace(&option, "");
     // todo this is ridiculously verbose
-    let option =
-      option.trim_matches(" \t\r\n[](){}.:!".chars().collect::<Vec<_>>().as_slice());
+    let option = option
+      .trim_matches(" \t\r\n[](){}.:!".chars().collect::<Vec<_>>().as_slice());
     if !option.starts_with('-') || option == "-" || option == "--" {
       continue;
     }
@@ -139,8 +140,8 @@ pub fn make_arg(options: &str, desc: Option<&str>) -> Option<Arg> {
 
       let desc = trim_desc(desc);
       let desc = if desc.is_empty() { None } else { Some(desc) };
-      Some(Arg { forms, desc })
+      Some(Flag { forms, desc })
     }
-    None => Some(Arg { forms, desc: None }),
+    None => Some(Flag { forms, desc: None }),
   }
 }

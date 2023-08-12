@@ -42,7 +42,11 @@ impl Completions for ZshCompletions {
   ///         '-b[Make new branch]'
   /// }
   /// ```
-  fn generate<P>(cmd_name: &str, cmd_info: &CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(
+    cmd_name: &str,
+    cmd_info: &CommandInfo,
+    out_dir: P,
+  ) -> Result<()>
   where
     P: AsRef<Path>,
   {
@@ -88,9 +92,13 @@ fn generate_fn(
   }
 
   out.indent();
-  for opt in cmd_info.args.iter() {
-    let desc = if let Some(desc) = &opt.desc { desc } else { "" };
-    for form in opt.forms.iter() {
+  for flag in cmd_info.flags.iter() {
+    let desc = if let Some(desc) = &flag.desc {
+      desc
+    } else {
+      ""
+    };
+    for form in flag.forms.iter() {
       let text = util::quote_bash(format!("{}[{}]", form, desc));
       out.writeln(" \\");
       out.write(text);

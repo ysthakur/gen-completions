@@ -1,6 +1,6 @@
 {
   "git": {
-    "args": [
+    "flags": [
       {
         "forms": ["-v", "--version"],
         "description": "Prints the Git suite version that the git program came from. This option is i..."
@@ -96,7 +96,7 @@
     ],
     "subcommands": {
       "log": {
-        "args": [
+        "flags": [
           {
             "forms": ["--follow"],
             "description": "Continue listing the history of a file beyond renames (works only for a singl..."

@@ -12,8 +12,7 @@ const BIN_NAME: &str = "man-completions";
 /// Shells to test
 const SHELLS: [&str; 4] = ["zsh", "json", "bash", "nu"];
 
-#[test]
-fn test() {
+fn run_test() {
   // The project's root directory
   let root = env::var("CARGO_MANIFEST_DIR").unwrap();
 
@@ -91,4 +90,9 @@ fn test() {
   if !not_generated.is_empty() || !not_match.is_empty() {
     assert!(false);
   }
+}
+
+#[test]
+fn test1() {
+  run_test();
 }
