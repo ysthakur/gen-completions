@@ -3,64 +3,57 @@ use std::{fs, path::Path};
 use anyhow::Result;
 
 use super::util::Output;
-use crate::{
-  gen::{util, Completions},
-  parse::CommandInfo,
-};
+use crate::{gen::util, parse::CommandInfo};
 
-pub struct ZshCompletions;
-
-impl Completions for ZshCompletions {
-  /// Generate a completion file for Zsh
-  ///
-  /// A shortened example with git
-  /// ```
-  /// #compdef _git git
-  ///
-  /// function _git {
-  ///     local line
-  ///
-  ///     _argument -C \
-  ///         '-h[Show help]' \
-  ///         '--help[Show help]' \
-  ///         ': :(pull checkout)' \ # Assume only git pull and checkout exist
-  ///         '*::args->args'
-  ///
-  ///     case $line[1] in
-  ///         pull) _git_pull;;
-  ///         checkout) _git_checkout;;
-  ///     esac
-  /// }
-  ///
-  /// function _git_pull {
-  ///     _arguments \
-  ///         '-v[Output additional information]'
-  /// }
-  ///
-  /// function _git_checkout {
-  ///     _arguments \
-  ///         '-b[Make new branch]'
-  /// }
-  /// ```
-  fn generate<P>(
-    cmd_name: &str,
-    cmd_info: &CommandInfo,
-    out_dir: P,
-  ) -> Result<()>
-  where
-    P: AsRef<Path>,
-  {
-    // TODO make option to not overwrite file
-    let comp_name = format!("_{}", cmd_name);
-    let mut res = Output::new(String::from("\t"));
-    res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
-    generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
-    fs::write(
-      out_dir.as_ref().join(format!("{}.zsh", comp_name)),
-      res.text(),
-    )?;
-    Ok(())
-  }
+/// Generate a completion file for Zsh
+///
+/// A shortened example with git
+/// ```
+/// #compdef _git git
+///
+/// function _git {
+///     local line
+///
+///     _argument -C \
+///         '-h[Show help]' \
+///         '--help[Show help]' \
+///         ': :(pull checkout)' \ # Assume only git pull and checkout exist
+///         '*::args->args'
+///
+///     case $line[1] in
+///         pull) _git_pull;;
+///         checkout) _git_checkout;;
+///     esac
+/// }
+///
+/// function _git_pull {
+///     _arguments \
+///         '-v[Output additional information]'
+/// }
+///
+/// function _git_checkout {
+///     _arguments \
+///         '-b[Make new branch]'
+/// }
+/// ```
+pub fn generate<P>(
+  cmd_name: &str,
+  cmd_info: &CommandInfo,
+  out_dir: P,
+) -> Result<()>
+where
+  P: AsRef<Path>,
+{
+  // TODO make option to not overwrite file
+  let comp_name = format!("_{}", cmd_name);
+  let mut res = Output::new(String::from("\t"));
+  res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
+  generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
+  fs::write(
+    out_dir.as_ref().join(format!("{}.zsh", comp_name)),
+    res.text(),
+  )?;
+  Ok(())
 }
 
 /// Generate a completion function for a command/subcommand

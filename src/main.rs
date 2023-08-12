@@ -12,13 +12,7 @@ use log::{debug, error, info, warn};
 use parse::{detect_subcommands, parse_from};
 use regex::Regex;
 
-use crate::{
-  gen::{
-    BashCompletions, Completions, JsonCompletions, NuCompletions,
-    ZshCompletions,
-  },
-  parse::{get_cmd_name, CommandInfo},
-};
+use crate::parse::{get_cmd_name, CommandInfo};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {
@@ -94,18 +88,10 @@ fn gen_shell(
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
-    Shell::Zsh => {
-      <ZshCompletions as Completions>::generate(cmd_name, parsed, out_dir)
-    }
-    Shell::Json => {
-      <JsonCompletions as Completions>::generate(cmd_name, parsed, out_dir)
-    }
-    Shell::Bash => {
-      <BashCompletions as Completions>::generate(cmd_name, parsed, out_dir)
-    }
-    Shell::Nu => {
-      <NuCompletions as Completions>::generate(cmd_name, parsed, out_dir)
-    }
+    Shell::Zsh => gen::zsh::generate(cmd_name, parsed, out_dir),
+    Shell::Json => gen::json::generate(cmd_name, parsed, out_dir),
+    Shell::Bash => gen::bash::generate(cmd_name, parsed, out_dir),
+    Shell::Nu => gen::nu::generate(cmd_name, parsed, out_dir),
   }
 }
 

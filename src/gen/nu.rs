@@ -2,31 +2,24 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
-use crate::{
-  gen::{util::Output, Completions},
-  parse::CommandInfo,
-};
+use crate::{gen::util::Output, parse::CommandInfo};
 
-pub struct NuCompletions;
-
-impl Completions for NuCompletions {
-  /// Generate completions for Nushell
-  fn generate<P>(
-    cmd_name: &str,
-    cmd_info: &CommandInfo,
-    out_dir: P,
-  ) -> Result<()>
-  where
-    P: AsRef<Path>,
-  {
-    let mut res = Output::new(String::from("  "));
-    generate_cmd(cmd_name, cmd_info, &mut res, true);
-    fs::write(
-      out_dir.as_ref().join(format!("{}.nu", cmd_name)),
-      res.text(),
-    )?;
-    Ok(())
-  }
+/// Generate completions for Nushell
+pub fn generate<P>(
+  cmd_name: &str,
+  cmd_info: &CommandInfo,
+  out_dir: P,
+) -> Result<()>
+where
+  P: AsRef<Path>,
+{
+  let mut res = Output::new(String::from("  "));
+  generate_cmd(cmd_name, cmd_info, &mut res, true);
+  fs::write(
+    out_dir.as_ref().join(format!("{}.nu", cmd_name)),
+    res.text(),
+  )?;
+  Ok(())
 }
 
 fn generate_cmd(

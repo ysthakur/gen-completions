@@ -2,37 +2,30 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
-use crate::{
-  gen::{util::Output, Completions},
-  parse::CommandInfo,
-};
+use crate::{gen::util::Output, parse::CommandInfo};
 
-pub struct JsonCompletions;
-
-impl Completions for JsonCompletions {
-  /// Generate JSON representing the parsed options
-  ///
-  /// This should probably use a real JSON library but whatever
-  fn generate<P>(
-    cmd_name: &str,
-    cmd_info: &CommandInfo,
-    out_dir: P,
-  ) -> Result<()>
-  where
-    P: AsRef<Path>,
-  {
-    let mut res = Output::new(String::from("  "));
-    res.writeln("{");
-    res.indent();
-    generate_cmd(cmd_name, cmd_info, true, &mut res);
-    res.dedent();
-    res.writeln("}");
-    fs::write(
-      out_dir.as_ref().join(format!("{}.json", cmd_name)),
-      res.text(),
-    )?;
-    Ok(())
-  }
+/// Generate JSON representing the parsed options
+///
+/// This should probably use a real JSON library but whatever
+pub fn generate<P>(
+  cmd_name: &str,
+  cmd_info: &CommandInfo,
+  out_dir: P,
+) -> Result<()>
+where
+  P: AsRef<Path>,
+{
+  let mut res = Output::new(String::from("  "));
+  res.writeln("{");
+  res.indent();
+  generate_cmd(cmd_name, cmd_info, true, &mut res);
+  res.dedent();
+  res.writeln("}");
+  fs::write(
+    out_dir.as_ref().join(format!("{}.json", cmd_name)),
+    res.text(),
+  )?;
+  Ok(())
 }
 
 /// Helper to generate JSON
