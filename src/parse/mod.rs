@@ -131,6 +131,7 @@ pub fn parse_from(
   (CommandInfo { flags, subcommands }, errors)
 }
 
+/// Make a tree relating commands to their subcommands
 pub fn detect_subcommands<I, P, S>(
   manpages: I,
   explicit_subcmds: S,
@@ -210,6 +211,13 @@ fn detect_subcommand(cmd_name: &str, text: &str) -> Vec<String> {
   vec![cmd_name.to_string()]
 }
 
+/// Find all possible subcommands that might have the given hyphenated man page
+/// name
+///
+/// ## Arguments
+/// * `hyphens` - The locations of the hyphens in the string (also, the first
+///   element is the index of the start of the current substring, and the last
+///   element is the index of the end of the current substring)
 fn all_possible_subcommands<'a>(
   hyphens: &[usize],
   cmd: &'a str,
