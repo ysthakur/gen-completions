@@ -56,3 +56,4 @@ Things to do:
     directory.
 - Speed improvements - the integration tests currently take over a second to run,
   and it seems most of that time is spent in parsing
+- Figure out why fish only seems to use man1, man6, and man8

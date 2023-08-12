@@ -2,12 +2,14 @@ mod gen;
 mod parse;
 
 use std::{
-  collections::HashMap,
   path::{Path, PathBuf},
+  process::Command,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::{Parser, ValueEnum};
+use log::{debug, error, info, warn};
+use parse::{detect_subcommands, parse_from};
 use regex::Regex;
 
 use crate::{
@@ -15,7 +17,7 @@ use crate::{
     BashCompletions, Completions, JsonCompletions, NuCompletions,
     ZshCompletions,
   },
-  parse::{CommandInfo, ManParseConfig},
+  parse::{get_cmd_name, CommandInfo},
 };
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -42,77 +44,64 @@ struct Cli {
   #[arg(short, long, value_delimiter = ',', required = true)]
   shells: Vec<Shell>,
 
-  /// Directories to exclude from search
-  #[arg(short = 'i', long = "ignore", value_delimiter = ',')]
-  dirs_exclude: Option<Vec<PathBuf>>,
+  /// Directories to search for man pages in, e.g.
+  /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`.
+  #[arg(short, long, value_delimiter = ',')]
+  dirs: Option<Vec<PathBuf>>,
 
-  /// Particular commands to generate completions for. If omitted, generates
-  /// completions for all found commands.
-  #[arg(short, long)]
+  /// Particular commands to generate completions for (regex). If omitted,
+  /// generates completions for all found commands. If you want to match the
+  /// whole name, use `^...$`.
+  #[arg(short, long, value_name = "REGEX")]
   cmds: Option<Regex>,
 
-  /// Commands to exclude (regex).
-  #[arg(short = 'C', long)]
+  /// Commands to exclude (regex). If you want to match the whole name, use
+  /// `^...$`.
+  #[arg(short = 'C', long, value_name = "REGEX")]
   exclude_cmds: Option<Regex>,
 
   /// Commands that should not be treated as subcommands. This is to help deal
   /// with false positives when detecting subcommands.
-  #[arg(long, value_delimiter = ',')]
+  #[arg(long, value_name = "CMD_NAMES", value_delimiter = ',')]
   not_subcmds: Vec<String>,
 
   /// Explicitly tell man-completions which man pages are for which
   /// subcommands, in case it can't detect them. e.g. `git-commit=git
   /// commit,foobar=foo bar`.
-  #[arg(long, value_delimiter = ',', value_parser=subcmd_map_parser)]
+  #[arg(long, value_name = "MAN-PAGE=SUB CMD...", value_parser=subcmd_map_parser, value_delimiter = ',')]
   subcmds: Vec<(String, Vec<String>)>,
-
-  /// Manpage sections to exclude (1-8)
-  #[arg(short = 'S', long, value_parser = section_num_parser, value_delimiter = ',')]
-  sections_exclude: Vec<u8>,
 }
 
 fn subcmd_map_parser(
   s: &str,
 ) -> core::result::Result<(String, Vec<String>), String> {
-  let Some((page_name, as_subcmd)) = s.split_once("=") else {
+  let Some((page_name, as_subcmd)) = s.split_once('=') else {
     return Err(String::from(
       "subcommand mapping should be in the form 'manpage-name=sub command'",
     ));
   };
-  let as_subcmd = as_subcmd.split(" ").into_iter().map(String::from).collect();
+  let as_subcmd = as_subcmd.split(' ').map(String::from).collect();
   Ok((String::from(page_name), as_subcmd))
 }
 
-fn section_num_parser(s: &str) -> core::result::Result<u8, String> {
-  match str::parse::<u8>(s) {
-    Ok(num) => {
-      if (1..=8).contains(&num) {
-        Ok(num)
-      } else {
-        Err(String::from("must be between 1 and 8"))
-      }
-    }
-    _ => Err(String::from("should be an int between 1 and 8")),
-  }
-}
-
 fn gen_shell(
-  shell: Shell,
-  manpages: &HashMap<String, CommandInfo>,
+  shell: &Shell,
+  cmd_name: &str,
+  parsed: &CommandInfo,
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
     Shell::Zsh => {
-      <ZshCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+      <ZshCompletions as Completions>::generate(cmd_name, parsed, out_dir)
     }
     Shell::Json => {
-      <JsonCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+      <JsonCompletions as Completions>::generate(cmd_name, parsed, out_dir)
     }
     Shell::Bash => {
-      <BashCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+      <BashCompletions as Completions>::generate(cmd_name, parsed, out_dir)
     }
     Shell::Nu => {
-      <NuCompletions as Completions>::generate_all(manpages.iter(), out_dir)
+      <NuCompletions as Completions>::generate(cmd_name, parsed, out_dir)
     }
   }
 }
@@ -122,23 +111,117 @@ fn main() -> Result<()> {
 
   let args = Cli::parse();
 
-  let mut cfg = ManParseConfig::new()
-    .exclude_dirs(args.dirs_exclude.unwrap_or_default())
-    .exclude_sections(args.sections_exclude)
-    .not_subcommands(args.not_subcmds)
-    .subcommands(args.subcmds);
-  if let Some(exclude_cmds) = args.exclude_cmds {
-    cfg = cfg.exclude_commands(exclude_cmds);
-  }
-  if let Some(cmds) = args.cmds {
-    cfg = cfg.restrict_to_commands(cmds);
-  }
+  let search_dirs = match args.dirs {
+    Some(dirs) => dirs.into_iter().collect::<Vec<_>>(),
+    None => enumerate_dirs(get_manpath()?),
+  };
 
-  let res = cfg.parse()?;
+  let manpages = enumerate_manpages(search_dirs, args.cmds, args.exclude_cmds);
 
-  for shell in args.shells {
-    gen_shell(shell, &res, &args.out)?;
+  for (cmd_name, cmd_info) in detect_subcommands(manpages, args.subcmds) {
+    info!("Parsing '{}'", cmd_name);
+
+    let (res, errors) = parse_from(&cmd_name, cmd_info);
+
+    for error in errors {
+      error!("{}", error);
+    }
+
+    for shell in &args.shells {
+      info!("Generating completions for '{}' ({:?})", cmd_name, &shell);
+      gen_shell(shell, &cmd_name, &res, &args.out)?;
+    }
   }
 
   Ok(())
+}
+
+/// Find the search path for man by `manpath`, then `man --path`.
+fn get_manpath() -> Result<Vec<PathBuf>> {
+  if let Ok(manpath) = std::env::var("MANPATH") {
+    Ok(split_paths(&manpath))
+  } else {
+    debug!("Running 'manpath' to find MANPATH...");
+    if let Some(manpath) = from_cmd(&mut Command::new("manpath")) {
+      Ok(manpath)
+    } else {
+      warn!("Could not get path from 'manpath'. Trying 'man --path'");
+      if let Some(manpath) = from_cmd(Command::new("man").arg("--path")) {
+        Ok(manpath)
+      } else {
+        error!("Could not get path from 'man --path'");
+        Err(anyhow!("Please provide either the --dirs flag or set the MANPATH environment variable."))
+      }
+    }
+  }
+}
+
+/// Interpret the output of `manpath`/`man --path` as a list of paths
+fn from_cmd(cmd: &mut Command) -> Option<Vec<PathBuf>> {
+  cmd
+    .output()
+    .ok()
+    .map(|out| split_paths(std::str::from_utf8(&out.stdout).unwrap()))
+}
+
+fn split_paths(paths: &str) -> Vec<PathBuf> {
+  paths.split(':').map(PathBuf::from).collect()
+}
+
+/// Enumerate all directories containing manpages given the MANPATH (the list of
+/// directories in which man search for man pages). It looks for `man1`, `man2`,
+/// etc. folders inside each of the given directories and returns those inner
+/// `man<n>` folders.
+fn enumerate_dirs(manpath: Vec<PathBuf>) -> Vec<PathBuf> {
+  let section_names: Vec<_> = (1..=8).map(|n| format!("man{n}")).collect();
+
+  let mut res = Vec::new();
+
+  for parent_path in manpath {
+    if parent_path.is_dir() {
+      if let Ok(parent_path) = std::fs::canonicalize(parent_path) {
+        for section_name in &section_names {
+          res.push(parent_path.join(section_name));
+        }
+      }
+    }
+  }
+
+  res
+}
+
+/// Enumerate all directories containing manpages given the MANPATH (the list of
+/// directories in which man search for man pages). It looks for `man1`, `man2`,
+/// etc. folders inside each of the given directories and returns those inner
+/// `man<n>` folders.
+fn enumerate_manpages(
+  dirs: Vec<PathBuf>,
+  include_re: Option<Regex>,
+  exclude_re: Option<Regex>,
+) -> Vec<PathBuf> {
+  let mut res = Vec::new();
+  for dir in dirs {
+    if let Ok(manpages) = std::fs::read_dir(dir) {
+      for manpage in manpages.flatten() {
+        let path = manpage.path();
+        let cmd_name = get_cmd_name(&path);
+        let &include = &include_re
+          .as_ref()
+          .map(|re| re.is_match(&cmd_name))
+          .unwrap_or(true);
+        let &exclude = &exclude_re
+          .as_ref()
+          .map(|re| re.is_match(&cmd_name))
+          .unwrap_or(false);
+        if include && exclude && include_re.is_some() {
+          warn!("Command {} was both included and excluded explicitly, will exclude", cmd_name)
+        }
+        if include && !exclude {
+          res.push(path)
+        }
+      }
+    }
+  }
+
+  res
 }

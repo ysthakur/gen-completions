@@ -3,10 +3,7 @@ use std::{fs, path::Path};
 use anyhow::Result;
 
 use crate::{
-  gen::{
-    util::{quote_bash, Output},
-    Completions,
-  },
+  gen::{util::Output, Completions},
   parse::CommandInfo,
 };
 
@@ -14,7 +11,11 @@ pub struct BashCompletions;
 
 impl Completions for BashCompletions {
   /// Generate a completion file for Bash
-  fn generate<P>(cmd_name: &str, _cmd_info: &CommandInfo, out_dir: P) -> Result<()>
+  fn generate<P>(
+    cmd_name: &str,
+    _cmd_info: &CommandInfo,
+    out_dir: P,
+  ) -> Result<()>
   where
     P: AsRef<Path>,
   {
