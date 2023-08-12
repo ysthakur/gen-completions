@@ -5,14 +5,11 @@ use anyhow::Result;
 use crate::{gen::util::Output, parse::CommandInfo};
 
 /// Generate a completion file for Bash
-pub fn generate<P>(
+pub fn generate(
   cmd_name: &str,
   _cmd_info: &CommandInfo,
-  out_dir: P,
-) -> Result<()>
-where
-  P: AsRef<Path>,
-{
+  out_dir: &Path,
+) -> Result<()> {
   // TODO make option to not overwrite file
   let comp_name = format!("_comp_cmd_{cmd_name}");
 
@@ -26,9 +23,6 @@ where
   res.writeln("return 0");
   res.writeln("}");
 
-  fs::write(
-    out_dir.as_ref().join(format!("_{}.bash", cmd_name)),
-    res.text(),
-  )?;
+  fs::write(out_dir.join(format!("_{}.bash", cmd_name)), res.text())?;
   Ok(())
 }

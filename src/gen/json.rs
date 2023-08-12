@@ -7,24 +7,18 @@ use crate::{gen::util::Output, parse::CommandInfo};
 /// Generate JSON representing the parsed options
 ///
 /// This should probably use a real JSON library but whatever
-pub fn generate<P>(
+pub fn generate(
   cmd_name: &str,
   cmd_info: &CommandInfo,
-  out_dir: P,
-) -> Result<()>
-where
-  P: AsRef<Path>,
-{
+  out_dir: &Path,
+) -> Result<()> {
   let mut res = Output::new(String::from("  "));
   res.writeln("{");
   res.indent();
   generate_cmd(cmd_name, cmd_info, true, &mut res);
   res.dedent();
   res.writeln("}");
-  fs::write(
-    out_dir.as_ref().join(format!("{}.json", cmd_name)),
-    res.text(),
-  )?;
+  fs::write(out_dir.join(format!("{}.json", cmd_name)), res.text())?;
   Ok(())
 }
 

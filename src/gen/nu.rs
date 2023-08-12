@@ -5,20 +5,14 @@ use anyhow::Result;
 use crate::{gen::util::Output, parse::CommandInfo};
 
 /// Generate completions for Nushell
-pub fn generate<P>(
+pub fn generate(
   cmd_name: &str,
   cmd_info: &CommandInfo,
-  out_dir: P,
-) -> Result<()>
-where
-  P: AsRef<Path>,
-{
+  out_dir: &Path,
+) -> Result<()> {
   let mut res = Output::new(String::from("  "));
   generate_cmd(cmd_name, cmd_info, &mut res, true);
-  fs::write(
-    out_dir.as_ref().join(format!("{}.nu", cmd_name)),
-    res.text(),
-  )?;
+  fs::write(out_dir.join(format!("{}.nu", cmd_name)), res.text())?;
   Ok(())
 }
 

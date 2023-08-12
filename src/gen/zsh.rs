@@ -36,23 +36,17 @@ use crate::{gen::util, parse::CommandInfo};
 ///         '-b[Make new branch]'
 /// }
 /// ```
-pub fn generate<P>(
+pub fn generate(
   cmd_name: &str,
   cmd_info: &CommandInfo,
-  out_dir: P,
-) -> Result<()>
-where
-  P: AsRef<Path>,
-{
+  out_dir: &Path,
+) -> Result<()> {
   // TODO make option to not overwrite file
   let comp_name = format!("_{}", cmd_name);
   let mut res = Output::new(String::from("\t"));
   res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
   generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
-  fs::write(
-    out_dir.as_ref().join(format!("{}.zsh", comp_name)),
-    res.text(),
-  )?;
+  fs::write(out_dir.join(format!("{}.zsh", comp_name)), res.text())?;
   Ok(())
 }
 
