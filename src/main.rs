@@ -37,38 +37,41 @@ enum Shell {
 #[command(version, about, long_about)]
 struct Cli {
   /// Directory to output completions to
-  #[arg(short, long)]
+  #[arg(short, long, value_name = "path")]
   out: PathBuf,
 
   /// Shell(s) to generate completions for
-  #[arg(short, long, value_delimiter = ',', required = true)]
+  #[arg(
+    short,
+    long,
+    value_name = "shell,...",
+    value_delimiter = ',',
+    required = true
+  )]
   shells: Vec<Shell>,
 
   /// Directories to search for man pages in, e.g.
-  /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`.
-  #[arg(short, long, value_delimiter = ',')]
+  /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
+  #[arg(short, long, value_delimiter = ',', value_name = "path,...")]
   dirs: Option<Vec<PathBuf>>,
 
-  /// Particular commands to generate completions for (regex). If omitted,
-  /// generates completions for all found commands. If you want to match the
-  /// whole name, use `^...$`.
-  #[arg(short, long, value_name = "REGEX")]
+  /// Commands to generate completions for. If omitted, generates completions
+  /// for all found commands. To match the whole name, use "^...$"
+  #[arg(short, long, value_name = "regex")]
   cmds: Option<Regex>,
 
-  /// Commands to exclude (regex). If you want to match the whole name, use
-  /// `^...$`.
-  #[arg(short = 'C', long, value_name = "REGEX")]
+  /// Commands to exclude (regex). To match the whole name, use "^...$"
+  #[arg(short = 'C', long, value_name = "regex")]
   exclude_cmds: Option<Regex>,
 
-  /// Commands that should not be treated as subcommands. This is to help deal
+  /// Commands that should not be treated as subcommands, to help deal
   /// with false positives when detecting subcommands.
-  #[arg(long, value_name = "CMD_NAMES", value_delimiter = ',')]
+  #[arg(long, value_name = "command_name,...", value_delimiter = ',')]
   not_subcmds: Vec<String>,
 
-  /// Explicitly tell man-completions which man pages are for which
-  /// subcommands, in case it can't detect them. e.g. `git-commit=git
-  /// commit,foobar=foo bar`.
-  #[arg(long, value_name = "MAN-PAGE=SUB CMD...", value_parser=subcmd_map_parser, value_delimiter = ',')]
+  /// Explicitly list which man pages are for which subcommands. e.g.
+  /// `git-commit=git commit,foobar=foo bar`
+  #[arg(long, value_name = "man-page=sub cmd,...", value_parser=subcmd_map_parser, value_delimiter = ',')]
   subcmds: Vec<(String, Vec<String>)>,
 }
 
