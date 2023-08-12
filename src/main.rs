@@ -105,7 +105,8 @@ fn main() -> Result<()> {
     None => enumerate_dirs(get_manpath()?),
   };
 
-  let manpages = enumerate_manpages(search_dirs, args.cmds, args.exclude_cmds);
+  let manpages =
+    enumerate_manpages(search_dirs, &args.cmds, &args.exclude_cmds);
 
   let all_cmds = detect_subcommands(manpages, args.subcmds);
   let total = all_cmds.len();
@@ -187,8 +188,8 @@ fn enumerate_dirs(manpath: Vec<PathBuf>) -> Vec<PathBuf> {
 /// `man<n>` folders.
 fn enumerate_manpages(
   dirs: Vec<PathBuf>,
-  include_re: Option<Regex>,
-  exclude_re: Option<Regex>,
+  include_re: &Option<Regex>,
+  exclude_re: &Option<Regex>,
 ) -> Vec<PathBuf> {
   let mut res = Vec::new();
   for dir in dirs {
@@ -198,17 +199,15 @@ fn enumerate_manpages(
         let cmd_name = get_cmd_name(&path);
         let &include = &include_re
           .as_ref()
-          .map(|re| re.is_match(&cmd_name))
-          .unwrap_or(true);
+          .map_or(true, |re| re.is_match(&cmd_name));
         let &exclude = &exclude_re
           .as_ref()
-          .map(|re| re.is_match(&cmd_name))
-          .unwrap_or(false);
+          .map_or(false, |re| re.is_match(&cmd_name));
         if include && exclude && include_re.is_some() {
-          warn!("Command {} was both included and excluded explicitly, will exclude", cmd_name)
+          warn!("Command {} was both included and excluded explicitly, will exclude", cmd_name);
         }
         if include && !exclude {
-          res.push(path)
+          res.push(path);
         }
       }
     }

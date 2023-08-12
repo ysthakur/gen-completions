@@ -29,14 +29,14 @@ fn generate_cmd(
   out.writeln(format!("export extern \"{}\" [", cmd_name));
   out.indent();
 
-  for flag in cmd_info.flags.iter() {
+  for flag in &cmd_info.flags {
     let (mut short, mut long): (Vec<_>, Vec<_>) =
       flag.forms.iter().partition(|f| f.len() == 2);
 
     let desc_str = if let Some(desc) = &flag.desc {
       format!(" # {}", desc)
     } else {
-      String::from("")
+      String::new()
     };
 
     // Pair off as many long and short forms as possible

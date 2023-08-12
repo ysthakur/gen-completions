@@ -18,7 +18,7 @@ impl Output {
   /// `"\t"`).
   pub fn new(indent_str: String) -> Output {
     Output {
-      text: String::from(""),
+      text: String::new(),
       indent_str,
       indent_level: 0,
       line_ended: false,

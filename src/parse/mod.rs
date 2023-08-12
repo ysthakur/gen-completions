@@ -107,7 +107,7 @@ pub fn parse_from(
         if let Some(mut parsed) = parse_manpage_text(text) {
           flags.append(&mut parsed);
         } else {
-          errors.push(anyhow!("Could not parse man page for '{}'", cmd_name))
+          errors.push(anyhow!("Could not parse man page for '{}'", cmd_name));
         }
       }
       Err(e) => {
@@ -232,7 +232,7 @@ fn all_possible_subcommands<'a>(
       let mut all_right = all_possible_subcommands(&hyphens[i..], cmd);
       all_right.push(vec![&cmd[mid..hyphens[hyphens.len() - 1] - 1]]);
       for right in all_right {
-        let mut all_left = all_possible_subcommands(&hyphens[..i + 1], cmd);
+        let mut all_left = all_possible_subcommands(&hyphens[..=i], cmd);
         all_left.push(vec![&cmd[hyphens[0]..mid - 1]]);
         for mut left in all_left {
           left.extend_from_slice(&right);

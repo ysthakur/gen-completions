@@ -79,20 +79,22 @@ fn generate_fn(
   }
 
   out.indent();
-  for flag in cmd_info.flags.iter() {
+  for flag in &cmd_info.flags {
     let desc = if let Some(desc) = &flag.desc {
       desc
     } else {
       ""
     };
-    for form in flag.forms.iter() {
+    for form in &flag.forms {
       let text = util::quote_bash(format!("{}[{}]", form, desc));
       out.writeln(" \\");
       out.write(text);
     }
   }
 
-  if !cmd_info.subcommands.is_empty() {
+  if cmd_info.subcommands.is_empty() {
+    out.write("\n");
+  } else {
     let sub_cmds = cmd_info
       .subcommands
       .keys()
@@ -107,18 +109,16 @@ fn generate_fn(
     out.writeln(format!("case $line[{}] in", pos + 1));
     out.indent();
     for sub_cmd in cmd_info.subcommands.keys() {
-      out.writeln(format!("{sub_cmd}) {}_{};;", fn_name, sub_cmd))
+      out.writeln(format!("{sub_cmd}) {}_{};;", fn_name, sub_cmd));
     }
     out.dedent();
     out.writeln("esac");
-  } else {
-    out.write("\n");
   }
 
   out.dedent();
   out.writeln("}");
 
-  for (sub_cmd, sub_cmd_info) in cmd_info.subcommands.iter() {
+  for (sub_cmd, sub_cmd_info) in &cmd_info.subcommands {
     generate_fn(
       sub_cmd,
       sub_cmd_info,

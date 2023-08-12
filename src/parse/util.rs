@@ -15,12 +15,10 @@ static ELLIPSIS: &str = "...";
 /// Match roff numeric expressions
 pub static NUM_RE: &str = r"(\d+(\.\d)?)";
 
-/// Note to future self: Don't bother making this return a Cow since the
-/// description will usually be trimmed anyway
-pub fn trim_desc(desc: String) -> String {
+pub fn trim_desc(desc: &str) -> String {
   // Remove extra spaces after sentence ends
   let re = Regex::new(r"\.\s+").unwrap();
-  let desc = re.replace_all(&desc, ". ");
+  let desc = re.replace_all(desc, ". ");
 
   // TODO port the sentence-splitting part too
   // https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py#L211
@@ -125,7 +123,7 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
     let desc = if let Some(desc) = desc {
       truncate(desc, 40)
     } else {
-      String::from("")
+      String::new()
     };
     debug!("No options found in '{}', desc: '{}'", options.trim(), desc);
     return None;
@@ -138,7 +136,7 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
       // Remove bogus escapes
       let desc = desc.replace(r"\'", "").replace(r"\.", "");
 
-      let desc = trim_desc(desc);
+      let desc = trim_desc(&desc);
       let desc = if desc.is_empty() { None } else { Some(desc) };
       Some(Flag { forms, desc })
     }

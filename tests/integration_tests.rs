@@ -75,9 +75,9 @@ fn run_test() {
   if !not_match.is_empty() {
     println!("The following files didn't match what was expected:");
     for file_name in &not_match {
-      let exp = expected_dir.join(&file_name);
+      let exp = expected_dir.join(file_name);
       let exp = exp.to_string_lossy();
-      let got = out_dir.join(&file_name);
+      let got = out_dir.join(file_name);
       let got = got.to_string_lossy();
       println!(
         "Test for {file_name} failed: contents of {got} did not match those of {exp}"
@@ -87,9 +87,7 @@ fn run_test() {
     }
   }
 
-  if !not_generated.is_empty() || !not_match.is_empty() {
-    assert!(false);
-  }
+  assert!(not_generated.is_empty() && not_match.is_empty());
 }
 
 #[test]
