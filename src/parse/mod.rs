@@ -10,6 +10,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Error, Result};
+use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
 
@@ -63,6 +64,7 @@ where
   type1::parse(text).or_else(|| type2::parse(text))
 }
 
+/// Decompress a manpage if necessary
 pub fn read_manpage<P>(manpage_path: P) -> Result<String>
 where
   P: AsRef<Path>,
@@ -71,18 +73,18 @@ where
   trace!("Reading man page at {}", path.display());
   match path.extension() {
     Some(ext) => {
+      let file = File::open(path)?;
+      let mut reader = BufReader::new(file);
+      let mut str = String::new();
+      // TODO GzDecoder and BzDecoder seem to only work with UTF-8?
       if ext == "gz" {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        let mut decoder = GzDecoder::new(reader);
-        let mut str = String::new();
-        // TODO this only works with UTF-8
-        decoder.read_to_string(&mut str)?;
-        Ok(str)
+        GzDecoder::new(reader).read_to_string(&mut str)?;
+      } else if ext == "bz2" {
+        BzDecoder::new(reader).read_to_string(&mut str)?;
       } else {
-        let contents = std::fs::read_to_string(path)?;
-        Ok(contents)
+        reader.read_to_string(&mut str)?;
       }
+      Ok(str)
     }
     None => todo!(),
   }
