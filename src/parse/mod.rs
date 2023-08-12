@@ -13,16 +13,46 @@ use anyhow::{anyhow, Error, Result};
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
 
+/// Flags parsed from a command, as well as its parsed subcommands
 #[derive(Debug)]
 pub struct CommandInfo {
   pub flags: Vec<Flag>,
   pub subcommands: HashMap<String, CommandInfo>,
 }
 
+/// A parsed flag
 #[derive(Debug)]
 pub struct Flag {
+  /// The different short and long forms of a flag
   pub forms: Vec<String>,
   pub desc: Option<String>,
+}
+
+/// Information about a command and its subcommands before being parsed
+pub struct CmdPreInfo {
+  path: Option<PathBuf>,
+  subcmds: HashMap<String, CmdPreInfo>,
+}
+
+/// Get the command that a manpage is for, given its path
+///
+/// e.g. `/foo/cowsay.1.txt -> "cowsay"`
+pub fn get_cmd_name<P>(manpage_path: P) -> String
+where
+  P: AsRef<Path>,
+{
+  let file_name = manpage_path
+    .as_ref()
+    .file_name()
+    .unwrap()
+    .to_string_lossy()
+    .replace(std::char::REPLACEMENT_CHARACTER, "");
+  // The file name will be something like foo.1.gz, we only want foo
+  file_name
+    .split('.')
+    .next()
+    .unwrap_or(&file_name)
+    .to_string()
 }
 
 pub fn parse_manpage_text<S>(text: S) -> Option<Vec<Flag>>
@@ -33,10 +63,29 @@ where
   type1::parse(text).or_else(|| type2::parse(text))
 }
 
-/// Information about a command its subcommands before being parsed
-pub struct CmdPreInfo {
-  path: Option<PathBuf>,
-  subcmds: HashMap<String, CmdPreInfo>,
+pub fn read_manpage<P>(manpage_path: P) -> Result<String>
+where
+  P: AsRef<Path>,
+{
+  let path = manpage_path.as_ref();
+  trace!("Reading man page at {}", path.display());
+  match path.extension() {
+    Some(ext) => {
+      if ext == "gz" {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut decoder = GzDecoder::new(reader);
+        let mut str = String::new();
+        // TODO this only works with UTF-8
+        decoder.read_to_string(&mut str)?;
+        Ok(str)
+      } else {
+        let contents = std::fs::read_to_string(path)?;
+        Ok(contents)
+      }
+    }
+    None => todo!(),
+  }
 }
 
 /// Take a `CmdPreInfo` representing the path to a command and its subcommands
@@ -80,27 +129,6 @@ pub fn parse_from(
   (CommandInfo { flags, subcommands }, errors)
 }
 
-/// Insert a subcommand into a tree of subcommands
-fn insert_subcmd(
-  subcommands: &mut HashMap<String, CmdPreInfo>,
-  mut cmd_parts: Vec<String>,
-  path: PathBuf,
-) {
-  let head = cmd_parts.remove(0);
-  let cmd = match subcommands.entry(head) {
-    Entry::Occupied(o) => o.into_mut(),
-    Entry::Vacant(v) => v.insert(CmdPreInfo {
-      path: None,
-      subcmds: HashMap::new(),
-    }),
-  };
-  if cmd_parts.is_empty() {
-    cmd.path = Some(path);
-  } else {
-    insert_subcmd(&mut cmd.subcmds, cmd_parts, path);
-  }
-}
-
 pub fn detect_subcommands<I, P, S>(
   manpages: I,
   explicit_subcmds: S,
@@ -131,50 +159,25 @@ where
   res
 }
 
-pub fn read_manpage<P>(manpage_path: P) -> Result<String>
-where
-  P: AsRef<Path>,
-{
-  let path = manpage_path.as_ref();
-  trace!("Reading man page at {}", path.display());
-  match path.extension() {
-    Some(ext) => {
-      if ext == "gz" {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        let mut decoder = GzDecoder::new(reader);
-        let mut str = String::new();
-        // TODO this only works with UTF-8
-        decoder.read_to_string(&mut str)?;
-        Ok(str)
-      } else {
-        let contents = std::fs::read_to_string(path)?;
-        Ok(contents)
-      }
-    }
-    None => todo!(),
+/// Insert a subcommand into a tree of subcommands
+fn insert_subcmd(
+  subcommands: &mut HashMap<String, CmdPreInfo>,
+  mut cmd_parts: Vec<String>,
+  path: PathBuf,
+) {
+  let head = cmd_parts.remove(0);
+  let cmd = match subcommands.entry(head) {
+    Entry::Occupied(o) => o.into_mut(),
+    Entry::Vacant(v) => v.insert(CmdPreInfo {
+      path: None,
+      subcmds: HashMap::new(),
+    }),
+  };
+  if cmd_parts.is_empty() {
+    cmd.path = Some(path);
+  } else {
+    insert_subcmd(&mut cmd.subcmds, cmd_parts, path);
   }
-}
-
-/// Get the command that a manpage is for, given its path
-///
-/// e.g. `/foo/cowsay.1.txt -> "cowsay"`
-pub fn get_cmd_name<P>(manpage_path: P) -> String
-where
-  P: AsRef<Path>,
-{
-  let file_name = manpage_path
-    .as_ref()
-    .file_name()
-    .unwrap()
-    .to_string_lossy()
-    .replace(std::char::REPLACEMENT_CHARACTER, "");
-  // The file name will be something like foo.1.gz, we only want foo
-  file_name
-    .split('.')
-    .next()
-    .unwrap_or(&file_name)
-    .to_string()
 }
 
 /// Try to detect if the given command is actually a subcommand and break it up

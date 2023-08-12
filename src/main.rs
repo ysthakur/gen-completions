@@ -118,8 +118,10 @@ fn main() -> Result<()> {
 
   let manpages = enumerate_manpages(search_dirs, args.cmds, args.exclude_cmds);
 
-  for (cmd_name, cmd_info) in detect_subcommands(manpages, args.subcmds) {
-    info!("Parsing '{}'", cmd_name);
+  let all_cmds = detect_subcommands(manpages, args.subcmds);
+  let total = all_cmds.len();
+  for (i, (cmd_name, cmd_info)) in all_cmds.into_iter().enumerate() {
+    info!("Parsing '{}' ({}/{})", cmd_name, i + 1, total);
 
     let (res, errors) = parse_from(&cmd_name, cmd_info);
 
