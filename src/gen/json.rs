@@ -18,7 +18,7 @@ pub fn generate(
   generate_cmd(cmd_name, cmd_info, true, &mut res);
   res.dedent();
   res.writeln("}");
-  fs::write(out_dir.join(format!("{}.json", cmd_name)), res.text())?;
+  fs::write(out_dir.join(format!("{cmd_name}.json")), res.text())?;
   Ok(())
 }
 
@@ -54,7 +54,7 @@ fn generate_cmd(
         .map(|a| quote(a))
         .collect::<Vec<_>>()
         .join(", ");
-      out.write(format!("\"forms\": [{}]", forms));
+      out.write(format!("\"forms\": [{forms}]"));
       if let Some(desc) = &flag.desc {
         out.writeln(",");
         out.writeln(format!("\"description\": {}", quote(desc)));
@@ -100,7 +100,7 @@ fn generate_cmd(
     out.writeln(end);
   } else {
     // If no arguments, print `"cmd": {}` on a single line
-    out.writeln(format!("{}: {{{}", cmd, end));
+    out.writeln(format!("{cmd}: {{{end}"));
   }
 }
 

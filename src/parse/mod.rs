@@ -123,7 +123,7 @@ pub fn parse_from(
 
   for (sub_name, sub_info) in pre_info.subcmds {
     let (subcmd, mut sub_errors) =
-      parse_from(&format!("{} {}", cmd_name, sub_name), sub_info);
+      parse_from(&format!("{cmd_name} {sub_name}"), sub_info);
     subcommands.insert(sub_name, subcmd);
     errors.append(&mut sub_errors);
   }

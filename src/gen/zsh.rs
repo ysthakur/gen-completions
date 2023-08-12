@@ -42,11 +42,11 @@ pub fn generate(
   out_dir: &Path,
 ) -> Result<()> {
   // TODO make option to not overwrite file
-  let comp_name = format!("_{}", cmd_name);
+  let comp_name = format!("_{cmd_name}");
   let mut res = Output::new(String::from("\t"));
-  res.writeln(format!("#compdef {} {}", comp_name, cmd_name));
+  res.writeln(format!("#compdef {comp_name} {cmd_name}"));
   generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
-  fs::write(out_dir.join(format!("{}.zsh", comp_name)), res.text())?;
+  fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
   Ok(())
 }
 
@@ -66,7 +66,7 @@ fn generate_fn(
   fn_name: &str,
 ) {
   out.write("\n");
-  out.writeln(format!("function {} {{", fn_name));
+  out.writeln(format!("function {fn_name} {{"));
   out.indent();
 
   if !cmd_info.subcommands.is_empty() {
@@ -86,7 +86,7 @@ fn generate_fn(
       ""
     };
     for form in &flag.forms {
-      let text = util::quote_bash(format!("{}[{}]", form, desc));
+      let text = util::quote_bash(format!("{form}[{desc}]"));
       out.writeln(" \\");
       out.write(text);
     }
@@ -102,14 +102,14 @@ fn generate_fn(
       .collect::<Vec<_>>()
       .join(" ");
     out.writeln(" \\");
-    out.writeln(format!("': :({})' \\", sub_cmds));
+    out.writeln(format!("': :({sub_cmds})' \\"));
     out.writeln("'*::arg:->args'");
     out.dedent();
 
     out.writeln(format!("case $line[{}] in", pos + 1));
     out.indent();
     for sub_cmd in cmd_info.subcommands.keys() {
-      out.writeln(format!("{sub_cmd}) {}_{};;", fn_name, sub_cmd));
+      out.writeln(format!("{sub_cmd}) {fn_name}_{sub_cmd};;"));
     }
     out.dedent();
     out.writeln("esac");
@@ -124,7 +124,7 @@ fn generate_fn(
       sub_cmd_info,
       out,
       pos + 1,
-      &format!("{}_{}", fn_name, sub_cmd),
+      &format!("{fn_name}_{sub_cmd}"),
     );
   }
 }

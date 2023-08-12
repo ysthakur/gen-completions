@@ -31,7 +31,7 @@ pub fn trim_desc(desc: &str) -> String {
 
 /// Regex to get the contents of a section with the given title
 pub fn regex_for_section(title: &str) -> Regex {
-  RegexBuilder::new(&format!(r#"\.SH {}(.*?)(\.SH|\z)"#, title))
+  RegexBuilder::new(&format!(r#"\.SH {title}(.*?)(\.SH|\z)"#))
     .multi_line(true)
     .dot_matches_new_line(true)
     .build()
@@ -71,7 +71,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\(aq", "'"); // Added by me, not from Fish. May need to remove all \(xx
 
   // todo Fish doesn't do this, see how it handles .sp
-  let re = Regex::new(&format!(r"\.sp( {}v?)?", NUM_RE)).unwrap();
+  let re = Regex::new(&format!(r"\.sp( {NUM_RE}v?)?")).unwrap();
   re.replace_all(&data, "").to_string()
 }
 

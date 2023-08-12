@@ -12,7 +12,7 @@ pub fn generate(
 ) -> Result<()> {
   let mut res = Output::new(String::from("  "));
   generate_cmd(cmd_name, cmd_info, &mut res, true);
-  fs::write(out_dir.join(format!("{}.nu", cmd_name)), res.text())?;
+  fs::write(out_dir.join(format!("{cmd_name}.nu")), res.text())?;
   Ok(())
 }
 
@@ -26,7 +26,7 @@ fn generate_cmd(
     // Avoid an extra line at the beginning of the file
     out.writeln("");
   }
-  out.writeln(format!("export extern \"{}\" [", cmd_name));
+  out.writeln(format!("export extern \"{cmd_name}\" ["));
   out.indent();
 
   for flag in &cmd_info.flags {
@@ -34,7 +34,7 @@ fn generate_cmd(
       flag.forms.iter().partition(|f| f.len() == 2);
 
     let desc_str = if let Some(desc) = &flag.desc {
-      format!(" # {}", desc)
+      format!(" # {desc}")
     } else {
       String::new()
     };
@@ -48,11 +48,11 @@ fn generate_cmd(
     }
 
     while let Some(flag) = long.pop() {
-      out.writeln(format!("{}{}", flag, desc_str));
+      out.writeln(format!("{flag}{desc_str}"));
     }
 
     while let Some(flag) = short.pop() {
-      out.writeln(format!("{}{}", flag, desc_str));
+      out.writeln(format!("{flag}{desc_str}"));
     }
   }
 
@@ -60,6 +60,6 @@ fn generate_cmd(
   out.writeln("]");
 
   for (subname, subcmd) in &cmd_info.subcommands {
-    generate_cmd(&format!("{} {}", cmd_name, subname), subcmd, out, false);
+    generate_cmd(&format!("{cmd_name} {subname}"), subcmd, out, false);
   }
 }

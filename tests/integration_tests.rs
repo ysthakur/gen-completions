@@ -83,7 +83,7 @@ fn run_test() {
         "Test for {file_name} failed: contents of {got} did not match those of {exp}"
       );
       println!("To see the diff, run `diff {exp} {got}`");
-      println!("To overwrite the expected file, run `cp {got} {exp}`")
+      println!("To overwrite the expected file, run `cp {got} {exp}`");
     }
   }
 
