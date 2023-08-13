@@ -35,14 +35,8 @@ struct Cli {
   out: PathBuf,
 
   /// Shell(s) to generate completions for
-  #[arg(
-    short,
-    long,
-    value_name = "shell,...",
-    value_delimiter = ',',
-    required = true
-  )]
-  shells: Vec<Shell>,
+  #[arg(short, long, value_name = "shell")]
+  shell: Shell,
 
   /// Directories to search for man pages in, e.g.
   /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
@@ -111,7 +105,7 @@ fn main() -> Result<()> {
   let all_cmds = detect_subcommands(manpages, args.subcmds);
   let total = all_cmds.len();
   for (i, (cmd_name, cmd_info)) in all_cmds.into_iter().enumerate() {
-    info!("Parsing '{}' ({}/{})", cmd_name, i + 1, total);
+    info!("Parsing {} ({}/{})", cmd_name, i + 1, total);
 
     let (res, errors) = parse_from(&cmd_name, cmd_info);
 
@@ -119,10 +113,8 @@ fn main() -> Result<()> {
       error!("{}", error);
     }
 
-    for shell in &args.shells {
-      info!("Generating completions for '{}' ({:?})", cmd_name, &shell);
-      gen_shell(shell, &cmd_name, &res, &args.out)?;
-    }
+    info!("Generating completions for {}", cmd_name);
+    gen_shell(&args.shell, &cmd_name, &res, &args.out)?;
   }
 
   Ok(())
