@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/crates/l/man-completions.svg)](./LICENSE.md)
 
 This is an unfinished project to parse manpages to get completions for Zsh, Bash,
-Nushell, and other shells. Bash is still a work in progress.
+Nushell, and, in the future, other shells. Bash is still a work in progress.
 
 It also generates JSON files, in case your shell isn't supported, so you can process
 it and generate completions yourself.
@@ -25,8 +25,13 @@ I will eventually get around to porting Fish's subcommand detection.
 ## Installation
 
 - Using Cargo: `cargo install man-completions`
-- As a Nix flake: I have no idea
-- Download the right executable for your platform from the latest [release](https://github.com/ysthakur/man-completions/releases)
+- From the [Releases](https://github.com/ysthakur/man-completions/releases) page:
+  Simply download the right executable for your platform from the latest release
+- As a Nix flake: `github:ysthakur/man-completions`
+  - Untested because I have no idea how to install packages that are flakes
+- Build it yourself:
+  - Download this repository (`git clone git@github.com:ysthakur/man-completions.git`)
+  - `cd man-completions && cargo build --release`
 
 ## Flags
 
