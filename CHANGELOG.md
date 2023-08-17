@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0](https://github.com/ysthakur/man-completions/compare/v0.2.1...v0.3.0) (2023-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* Rename Arg to Flag
+* Move manpage-finding to main.rs
+
+### Features
+
+* Output (n parsed/total) statistic ([b89debf](https://github.com/ysthakur/man-completions/commit/b89debf1c077ee3ca95011c9f50e60242a31f6b3))
+* Read .bz2 ([02b5b27](https://github.com/ysthakur/man-completions/commit/02b5b27337e6c97ae6cd528b01071d47bd2ee9c0))
+* Untested Bash impl ([1f43bd4](https://github.com/ysthakur/man-completions/commit/1f43bd47c87fb1496176db9c40a53ad11785be43))
+
+
+### Code Refactoring
+
+* Move manpage-finding to main.rs ([d5a57cc](https://github.com/ysthakur/man-completions/commit/d5a57cc1c59d30efc52c500bf297f546e89a1b7e))
+* Rename Arg to Flag ([ec2dcce](https://github.com/ysthakur/man-completions/commit/ec2dcce0c57e3ac52883f2724f997b35859fa4b2))
+
 ## [0.2.1](https://github.com/ysthakur/man-completions/compare/v0.2.0...v0.2.1) (2023-08-11)
 
 
