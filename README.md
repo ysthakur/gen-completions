@@ -5,11 +5,13 @@
 [![Latest version](https://img.shields.io/crates/v/man-completions.svg)](https://crates.io/crates/man-completions)
 [![License](https://img.shields.io/crates/l/man-completions.svg)](./LICENSE.md)
 
-This is an unfinished project to parse manpages to get completions for Zsh, Bash,
-Nushell, and, in the future, other shells. Bash is still a work in progress.
+This is a crate for parsing manpages to get completions for Zsh, Bash, Nushell,
+and, in the future, other shells.
 
 It also generates JSON files, in case your shell isn't supported, so you can process
 it and generate completions yourself.
+
+Currently, only a couple kinds of manpages are supported.
 
 Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py)
 
@@ -55,13 +57,7 @@ so to configure that, set the `RUST_LOG` environment variable (the link has inst
 
 Things to do:
 
-- Generate Bash
 - Port type 3, type 4, darwin, scdoc, and degroff parsers
-- Don't generate unnecessary files in tests
-- Allow configuring tests more, test .gz, test excluding/including commands, directories, sections
-  - The `--shells` flag should really be `--shell` because outside of the tests,
-    no one's going to generate completions for multiple shells at once in the same
-    directory.
-- Speed improvements - the integration tests currently take over a second to run,
-  and it seems most of that time is spent in parsing
+- Ensure nested subcommands and multiple subcommands work
+- Test .gz, test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
