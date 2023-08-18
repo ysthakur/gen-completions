@@ -1,6 +1,7 @@
 mod type1;
 mod type2;
 mod type3;
+mod type4;
 mod util;
 
 use std::{
@@ -60,13 +61,18 @@ where
 /// Parse flags from a man page, trying all of the different parsers and merging
 /// their results if multiple parsers could parse the man page. Returns
 /// None if none of them could parse the man page.
-pub fn parse_manpage_text<S>(text: S) -> Option<Vec<Flag>>
+pub fn parse_manpage_text<S>(cmd_name: &str, text: S) -> Option<Vec<Flag>>
 where
   S: AsRef<str>,
 {
   let text = text.as_ref();
   let mut all_flags: Option<Vec<Flag>> = None;
-  for res in vec![type1::parse(text), type2::parse(text), type3::parse(text)] {
+  for res in vec![
+    type1::parse(cmd_name, text),
+    type2::parse(cmd_name, text),
+    type3::parse(cmd_name, text),
+    type4::parse(cmd_name, text),
+  ] {
     if let Some(mut flags) = res {
       match &mut all_flags {
         Some(prev_flags) => {
@@ -121,7 +127,7 @@ pub fn parse_from(
   if let Some(path) = pre_info.path {
     match read_manpage(&path) {
       Ok(text) => {
-        if let Some(mut parsed) = parse_manpage_text(text) {
+        if let Some(mut parsed) = parse_manpage_text(cmd_name, text) {
           flags.append(&mut parsed);
         } else {
           errors.push(anyhow!("Could not parse man page for '{}'", cmd_name));

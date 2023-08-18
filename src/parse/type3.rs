@@ -7,7 +7,7 @@ use super::{util, Flag};
 /// Fish's `Type3ManParser` doesn't handle HP...IP...HP, but the man page for
 /// sed, at least, uses that, so this parser handles that too.
 #[allow(clippy::case_sensitive_file_extension_comparisons)]
-pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
+pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
   match util::get_section("DESCRIPTION", page_text) {
     Some(content) => {
       let mut flags = Vec::new();
@@ -52,7 +52,10 @@ pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
             }
           } else {
             // todo should this be an error instead?
-            debug!("No description, data: {}", util::truncate(data, 40));
+            debug!(
+              "In command {cmd_name}, no description, data: {}",
+              util::truncate(data, 40)
+            );
           }
         }
       }

@@ -5,7 +5,7 @@ use super::{util, Flag};
 /// Ported from Fish's `Type1ManParser`
 ///
 /// todo implement fallback and fallback2 like the Fish script
-pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
+pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
   match util::get_section(r#""OPTIONS""#, page_text) {
     Some(content) => {
       let mut flags = Vec::new();
@@ -24,7 +24,7 @@ pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
           }
         } else {
           debug!(
-            "No .RE found to end description, para: {}",
+            "In command {cmd_name}, no .RE found to end description, para: {}",
             util::truncate(para, 40)
           );
         }

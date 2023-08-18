@@ -4,7 +4,7 @@ use regex::Regex;
 use super::{util, Flag};
 
 /// Ported from Fish's `Type2ManParser`
-pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
+pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
   match util::get_section("OPTIONS", page_text) {
     Some(content) => {
       let mut flags = Vec::new();
@@ -30,7 +30,10 @@ pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
           util::make_flag(options, Some(desc))
         } else {
           // todo should this be an error instead?
-          debug!("No description, data: {}", util::truncate(data, 40));
+          debug!(
+            "In command {cmd_name}, no description, data: {}",
+            util::truncate(data, 40)
+          );
           util::make_flag(data, None)
         };
         if let Some(flag) = flag {

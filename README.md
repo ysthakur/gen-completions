@@ -57,7 +57,8 @@ so to configure that, set the `RUST_LOG` environment variable (the link has inst
 
 Things to do:
 
-- Port type 3, type 4, darwin, scdoc, and degroff parsers
+- Port darwin, scdoc, and degroff parsers
+- Find samples of type 4 to test
 - Ensure nested subcommands and multiple subcommands work
-- Test .gz, test excluding/including commands and directories
+- Add .gz files to the tests, test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
