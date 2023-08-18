@@ -29,13 +29,17 @@ pub fn trim_desc(desc: &str) -> String {
   }
 }
 
-/// Regex to get the contents of a section with the given title
-pub fn regex_for_section(title: &str) -> Regex {
-  RegexBuilder::new(&format!(r#"\.SH {title}(.*?)(\.SH|\z)"#))
+/// Get the contents of a section with the given title
+pub fn get_section(title: &str, text: &str) -> Option<String> {
+  let re = RegexBuilder::new(&format!(r#"\.SH {title}(.*?)(\.SH|\z)"#))
     .multi_line(true)
     .dot_matches_new_line(true)
     .build()
-    .unwrap()
+    .unwrap();
+  re.captures(text).map(|captures| {
+    let content = captures.get(1).unwrap().as_str();
+    content.strip_suffix(".SH").unwrap_or(content).to_string()
+  })
 }
 
 /// Copied more or less directly from Fish's `remove_groff_formatting`

@@ -6,10 +6,8 @@ use super::{util, Flag};
 ///
 /// todo implement fallback and fallback2 like the Fish script
 pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
-  let re = util::regex_for_section(r#""OPTIONS""#);
-  match re.captures(page_text) {
-    Some(captures) => {
-      let content = captures.get(1).unwrap().as_str();
+  match util::get_section(r#""OPTIONS""#, page_text) {
+    Some(content) => {
       let mut flags = Vec::new();
 
       let mut paras = content.split(".PP");

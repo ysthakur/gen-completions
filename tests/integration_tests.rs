@@ -54,9 +54,15 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
       continue;
     }
 
-    let expected = fs::read(exp_file).unwrap();
-    let got = fs::read(&got_file).unwrap();
-    if expected != got {
+    if exp_file.exists() {
+      let expected = fs::read(exp_file).unwrap();
+      let got = fs::read(&got_file).unwrap();
+      if expected != got {
+        not_match.push(file_name);
+        continue;
+      }
+    } else {
+      println!("No {file_name} found in expected folder");
       not_match.push(file_name);
       continue;
     }
@@ -124,4 +130,9 @@ fn git_json() {
 #[test]
 fn rfcomm_json() {
   run_test("json", &["rfcomm"], &["--cmds", "^rfcomm"]);
+}
+
+#[test]
+fn sed_json() {
+  run_test("json", &["sed"], &["--cmds", "^sed"]);
 }

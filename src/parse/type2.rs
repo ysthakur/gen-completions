@@ -4,13 +4,9 @@ use regex::Regex;
 use super::{util, Flag};
 
 /// Ported from Fish's `Type2ManParser`
-///
-/// TODO actually test this
 pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
-  let re = util::regex_for_section("OPTIONS");
-  match re.captures(page_text) {
-    Some(captures) => {
-      let content = captures.get(1).unwrap().as_str();
+  match util::get_section("OPTIONS", page_text) {
+    Some(content) => {
       let mut flags = Vec::new();
 
       // todo this diverges from the Fish impl for splitting, check if it's okay
@@ -19,7 +15,7 @@ pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
         Regex::new(&format!(r"\.[IT]P( {}i?)?", util::NUM_RE)).unwrap();
       let para_end = Regex::new(r"\.(IP|TP|UNINDENT|UN|SH)").unwrap();
 
-      let mut paras = para_re.split(content);
+      let mut paras = para_re.split(&content);
       paras.next(); // Discard the part before the first option
       for para in paras {
         let data = if let Some(mat) = para_end.find(para) {

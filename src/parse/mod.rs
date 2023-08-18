@@ -1,5 +1,6 @@
 mod type1;
 mod type2;
+mod type3;
 mod util;
 
 use std::{
@@ -61,7 +62,9 @@ where
   S: AsRef<str>,
 {
   let text = text.as_ref();
-  type1::parse(text).or_else(|| type2::parse(text))
+  type1::parse(text)
+    .or_else(|| type2::parse(text))
+    .or_else(|| type3::parse(text))
 }
 
 /// Decompress a manpage if necessary
