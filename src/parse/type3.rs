@@ -6,6 +6,7 @@ use super::{util, Flag};
 /// Ported from Fish's `Type3ManParser`
 /// Fish's `Type3ManParser` doesn't handle HP...IP...HP, but the man page for
 /// sed, at least, uses that, so this parser handles that too.
+#[allow(clippy::case_sensitive_file_extension_comparisons)]
 pub fn parse(page_text: &str) -> Option<Vec<Flag>> {
   match util::get_section("DESCRIPTION", page_text) {
     Some(content) => {
