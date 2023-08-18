@@ -123,16 +123,21 @@ fn test1_nu() {
 }
 
 #[test]
-fn git_json() {
+fn type1_git_json() {
   run_test("json", &["git"], &["--cmds", "^git"]);
 }
 
 #[test]
-fn rfcomm_json() {
+fn type2_rfcomm_json() {
   run_test("json", &["rfcomm"], &["--cmds", "^rfcomm"]);
 }
 
 #[test]
-fn sed_json() {
+fn type3_sed_json() {
   run_test("json", &["sed"], &["--cmds", "^sed"]);
+}
+
+#[test]
+fn scdoc_sway_json() {
+  run_test("json", &["sway"], &["--cmds", "^sway"]);
 }

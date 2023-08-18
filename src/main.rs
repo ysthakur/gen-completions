@@ -117,7 +117,7 @@ fn main() -> Result<()> {
       info!("Generating completions for {cmd_name}");
       gen_shell(&args.shell, &cmd_name, &cmd_info, &args.out)?;
     } else {
-      warn!("Could not parse man page for {cmd_name}")
+      warn!("Could not parse man page for {cmd_name}");
     }
   }
 

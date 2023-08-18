@@ -1,3 +1,4 @@
+mod scdoc;
 mod type1;
 mod type2;
 mod type3;
@@ -67,11 +68,12 @@ where
 {
   let text = text.as_ref();
   let mut all_flags: Option<Vec<Flag>> = None;
-  for res in vec![
+  for res in [
     type1::parse(cmd_name, text),
     type2::parse(cmd_name, text),
     type3::parse(cmd_name, text),
     type4::parse(cmd_name, text),
+    scdoc::parse(cmd_name, text),
   ] {
     if let Some(mut flags) = res {
       match &mut all_flags {
