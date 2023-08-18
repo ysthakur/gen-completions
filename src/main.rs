@@ -77,15 +77,14 @@ fn subcmd_map_parser(
 
 fn gen_shell(
   shell: &Shell,
-  cmd_name: &str,
   parsed: &CommandInfo,
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
-    Shell::Zsh => gen::zsh::generate(cmd_name, parsed, out_dir),
-    Shell::Json => gen::json::generate(cmd_name, parsed, out_dir),
-    Shell::Bash => gen::bash::generate(cmd_name, parsed, out_dir),
-    Shell::Nu => gen::nu::generate(cmd_name, parsed, out_dir),
+    Shell::Zsh => gen::zsh::generate(parsed, out_dir),
+    Shell::Json => gen::json::generate(parsed, out_dir),
+    Shell::Bash => gen::bash::generate(parsed, out_dir),
+    Shell::Nu => gen::nu::generate(parsed, out_dir),
   }
 }
 
@@ -115,7 +114,7 @@ fn main() -> Result<()> {
 
     if let Some(cmd_info) = res {
       info!("Generating completions for {cmd_name}");
-      gen_shell(&args.shell, &cmd_name, &cmd_info, &args.out)?;
+      gen_shell(&args.shell, &cmd_info, &args.out)?;
     } else {
       warn!("Could not parse man page for {cmd_name}");
     }

@@ -36,16 +36,12 @@ use crate::{gen::util, parse::CommandInfo};
 ///         '-b[Make new branch]'
 /// }
 /// ```
-pub fn generate(
-  cmd_name: &str,
-  cmd_info: &CommandInfo,
-  out_dir: &Path,
-) -> Result<()> {
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   // TODO make option to not overwrite file
-  let comp_name = format!("_{cmd_name}");
+  let comp_name = format!("_{}", cmd.name);
   let mut res = Output::new(String::from("\t"));
-  res.writeln(format!("#compdef {comp_name} {cmd_name}"));
-  generate_fn(cmd_name, cmd_info, &mut res, 0, &comp_name);
+  res.writeln(format!("#compdef {comp_name} {}", cmd.name));
+  generate_fn(cmd, &mut res, 0, &comp_name);
   fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
   Ok(())
 }
@@ -58,28 +54,22 @@ pub fn generate(
 /// * `fn` - What to name the completion function. If you have a command `foo`
 ///   with subcommand `bar`, the completion function for `foo bar` would be
 ///   named `_foo_bar`
-fn generate_fn(
-  _cmd_name: &str,
-  cmd_info: &CommandInfo,
-  out: &mut Output,
-  pos: usize,
-  fn_name: &str,
-) {
-  out.write("\n");
+fn generate_fn(cmd: &CommandInfo, out: &mut Output, pos: usize, fn_name: &str) {
+  out.writeln("");
   out.writeln(format!("function {fn_name} {{"));
   out.indent();
 
-  if !cmd_info.subcommands.is_empty() {
+  if !cmd.subcommands.is_empty() {
     out.writeln("local line");
   }
-  if cmd_info.subcommands.is_empty() {
+  if cmd.subcommands.is_empty() {
     out.write("_arguments");
   } else {
     out.write("_arguments -C");
   }
 
   out.indent();
-  for flag in &cmd_info.flags {
+  for flag in &cmd.flags {
     let desc = if let Some(desc) = &flag.desc {
       desc
     } else {
@@ -92,13 +82,14 @@ fn generate_fn(
     }
   }
 
-  if cmd_info.subcommands.is_empty() {
+  if cmd.subcommands.is_empty() {
+    out.dedent();
     out.write("\n");
   } else {
-    let sub_cmds = cmd_info
+    let sub_cmds = cmd
       .subcommands
-      .keys()
-      .map(|s| s.to_string())
+      .iter()
+      .map(|c| c.name.to_string())
       .collect::<Vec<_>>()
       .join(" ");
     out.writeln(" \\");
@@ -108,8 +99,8 @@ fn generate_fn(
 
     out.writeln(format!("case $line[{}] in", pos + 1));
     out.indent();
-    for sub_cmd in cmd_info.subcommands.keys() {
-      out.writeln(format!("{sub_cmd}) {fn_name}_{sub_cmd};;"));
+    for sub_cmd in &cmd.subcommands {
+      out.writeln(format!("{}) {fn_name}_{};;", sub_cmd.name, sub_cmd.name));
     }
     out.dedent();
     out.writeln("esac");
@@ -118,13 +109,12 @@ fn generate_fn(
   out.dedent();
   out.writeln("}");
 
-  for (sub_cmd, sub_cmd_info) in &cmd_info.subcommands {
+  for sub_cmd in &cmd.subcommands {
     generate_fn(
       sub_cmd,
-      sub_cmd_info,
       out,
       pos + 1,
-      &format!("{fn_name}_{sub_cmd}"),
+      &format!("{fn_name}_{}", sub_cmd.name),
     );
   }
 }

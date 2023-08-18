@@ -7,18 +7,14 @@ use crate::{gen::util::Output, parse::CommandInfo};
 /// Generate JSON representing the parsed options
 ///
 /// This should probably use a real JSON library but whatever
-pub fn generate(
-  cmd_name: &str,
-  cmd_info: &CommandInfo,
-  out_dir: &Path,
-) -> Result<()> {
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   let mut res = Output::new(String::from("  "));
   res.writeln("{");
   res.indent();
-  generate_cmd(cmd_name, cmd_info, true, &mut res);
+  generate_cmd(cmd, true, &mut res);
   res.dedent();
   res.writeln("}");
-  fs::write(out_dir.join(format!("{cmd_name}.json")), res.text())?;
+  fs::write(out_dir.join(format!("{}.json", cmd.name)), res.text())?;
   Ok(())
 }
 
@@ -28,18 +24,13 @@ pub fn generate(
 /// * `indent` - The indentation level (how many subcommands in we are)
 /// * `last` - Whether this is the last command at this level. Used for deciding
 ///   whether or not to put a trailing comma
-fn generate_cmd(
-  cmd: &str,
-  cmd_info: &CommandInfo,
-  last: bool,
-  out: &mut Output,
-) {
-  let cmd = quote(cmd);
+fn generate_cmd(cmd: &CommandInfo, last: bool, out: &mut Output) {
+  let cmd_name = quote(&cmd.name);
   // Avoid trailing commas
   let end = if last { "}" } else { "}," };
-  let mut flags = cmd_info.flags.iter();
+  let mut flags = cmd.flags.iter();
   if let Some(mut flag) = flags.next() {
-    out.writeln(format!("{cmd}: {{"));
+    out.writeln(format!("{cmd_name}: {{"));
     out.indent();
     out.writeln("\"flags\": [");
     out.indent();
@@ -76,20 +67,17 @@ fn generate_cmd(
     out.dedent();
     out.writeln("],");
 
-    let mut subcmds = cmd_info.subcommands.iter();
-    if let Some((mut name, mut info)) = subcmds.next() {
+    let mut subcmds = cmd.subcommands.iter();
+    if let Some(mut sub_cmd) = subcmds.next() {
       out.writeln("\"subcommands\": {");
       out.indent();
-      loop {
-        if let Some(next) = subcmds.next() {
-          generate_cmd(name, info, false, out);
-          name = next.0;
-          info = next.1;
-        } else {
-          generate_cmd(name, info, true, out);
-          break;
-        }
+
+      while let Some(next) = subcmds.next() {
+        generate_cmd(sub_cmd, false, out);
+        sub_cmd = next;
       }
+      generate_cmd(sub_cmd, true, out);
+
       out.dedent();
       out.writeln("}");
     } else {
@@ -100,7 +88,7 @@ fn generate_cmd(
     out.writeln(end);
   } else {
     // If no arguments, print `"cmd": {}` on a single line
-    out.writeln(format!("{cmd}: {{{end}"));
+    out.writeln(format!("{cmd_name}: {{{end}"));
   }
 }
 

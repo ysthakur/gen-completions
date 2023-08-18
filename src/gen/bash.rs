@@ -5,12 +5,8 @@ use anyhow::Result;
 use crate::{gen::util::Output, parse::CommandInfo};
 
 /// Generate a completion file for Bash
-pub fn generate(
-  cmd_name: &str,
-  cmd_info: &CommandInfo,
-  out_dir: &Path,
-) -> Result<()> {
-  let comp_name = format!("_comp_cmd_{cmd_name}");
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
+  let comp_name = format!("_comp_cmd_{}", cmd.name);
 
   let mut out = Output::new(String::from("\t"));
   out.writeln("#!/usr/bin/env bash\n");
@@ -18,35 +14,41 @@ pub fn generate(
   out.indent();
   out.writeln("COMPREPLY=()");
 
-  generate_cmd(cmd_info, 1, &mut out);
+  generate_cmd(cmd, 1, &mut out);
 
   out.writeln("return 0");
   out.dedent();
   out.writeln("}\n");
 
-  out.writeln(format!("complete -F _comp_cmd_{cmd_name} {cmd_name}"));
+  out.writeln(format!("complete -F _comp_cmd_{} {}", cmd.name, cmd.name));
 
-  fs::write(out_dir.join(format!("_{cmd_name}.bash")), out.text())?;
+  fs::write(out_dir.join(format!("_{}.bash", cmd.name)), out.text())?;
   Ok(())
 }
 
-fn generate_cmd(cmd_info: &CommandInfo, pos: usize, out: &mut Output) {
+fn generate_cmd(cmd: &CommandInfo, pos: usize, out: &mut Output) {
   out.writeln("case $COMP_CWORD in");
   out.indent();
 
-  let flags = cmd_info
+  let flags = cmd
     .flags
     .iter()
     .map(|f| f.forms.join(" "))
     .collect::<Vec<_>>()
     .join(" ");
-  let subcmds = cmd_info
+  let subcmds = cmd
     .subcommands
-    .keys()
-    .map(String::from)
+    .iter()
+    .map(|c| c.name.to_string())
     .collect::<Vec<_>>()
     .join(" ");
-  let completions = format!("{flags} {subcmds}");
+  let completions = if flags.is_empty() {
+    subcmds
+  } else if subcmds.is_empty() {
+    flags
+  } else {
+    format!("{flags} {subcmds}")
+  };
   // This case is for when the subcommand we're processing is the one to
   // complete
   out.writeln(format!(
@@ -54,15 +56,15 @@ fn generate_cmd(cmd_info: &CommandInfo, pos: usize, out: &mut Output) {
   ));
 
   // This case is in case we need to go further to a deeper subcommand
-  if !cmd_info.subcommands.is_empty() {
+  if !cmd.subcommands.is_empty() {
     out.writeln("*)");
     out.indent();
     out.writeln(format!("case ${{COMP_WORDS[{pos}]}} in"));
     out.indent();
-    for (cmd_name, cmd_info) in &cmd_info.subcommands {
-      out.writeln(format!("{cmd_name})"));
+    for sub_cmd in &cmd.subcommands {
+      out.writeln(format!("{})", sub_cmd.name));
       out.indent();
-      generate_cmd(cmd_info, pos + 1, out);
+      generate_cmd(sub_cmd, pos + 1, out);
       out.writeln(";;");
       out.dedent();
     }

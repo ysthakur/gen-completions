@@ -20,8 +20,9 @@ use log::{debug, trace};
 /// Flags parsed from a command, as well as its parsed subcommands
 #[derive(Debug)]
 pub struct CommandInfo {
+  pub name: String,
   pub flags: Vec<Flag>,
-  pub subcommands: HashMap<String, CommandInfo>,
+  pub subcommands: Vec<CommandInfo>,
 }
 
 /// A parsed flag
@@ -124,7 +125,7 @@ pub fn parse_from(
   pre_info: CmdPreInfo,
 ) -> (Option<CommandInfo>, Vec<Error>) {
   let mut flags = Vec::new();
-  let mut subcommands = HashMap::new();
+  let mut subcommands = Vec::new();
   let mut errors = Vec::new();
 
   if let Some(path) = pre_info.path {
@@ -148,16 +149,23 @@ pub fn parse_from(
   }
 
   for (sub_name, sub_info) in pre_info.subcmds {
-    let (subcmd, mut sub_errors) =
+    let (sub_cmd, mut sub_errors) =
       parse_from(&format!("{cmd_name} {sub_name}"), sub_info);
-    subcmd.map(|c| subcommands.insert(sub_name, c));
+    if let Some(cmd) = sub_cmd {
+      subcommands.push(cmd);
+    }
     errors.append(&mut sub_errors);
   }
 
   let cmd_info = if flags.is_empty() && subcommands.is_empty() {
     None
   } else {
-    Some(CommandInfo { flags, subcommands })
+    subcommands.sort_by(|a, b| a.name.cmp(&b.name));
+    Some(CommandInfo {
+      name: cmd_name.split(' ').last().unwrap().to_string(),
+      flags,
+      subcommands,
+    })
   };
   (cmd_info, errors)
 }

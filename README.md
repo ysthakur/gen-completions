@@ -62,7 +62,7 @@ Things to do:
 - Port darwin and degroff parsers
 - Test the type 4 parser
 - Find samples of type 4, Darwin, and Degroff to test
-- Ensure nested subcommands and multiple subcommands work
+- Ensure nested subcommands work
 - Add .gz files to the tests folder
 - Test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
