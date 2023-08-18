@@ -72,7 +72,7 @@ fn generate_cmd(cmd: &CommandInfo, last: bool, out: &mut Output) {
       out.writeln("\"subcommands\": {");
       out.indent();
 
-      while let Some(next) = subcmds.next() {
+      for next in subcmds {
         generate_cmd(sub_cmd, false, out);
         sub_cmd = next;
       }

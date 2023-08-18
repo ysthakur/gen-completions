@@ -45,11 +45,11 @@ fn generate_cmd(
       out.writeln(format!("{}{}{}", long.next().unwrap(), short_str, desc_str));
     }
 
-    while let Some(flag) = long.next() {
+    for flag in long {
       out.writeln(format!("{flag}{desc_str}"));
     }
 
-    while let Some(flag) = short.next() {
+    for flag in short {
       out.writeln(format!("{flag}{desc_str}"));
     }
   }
