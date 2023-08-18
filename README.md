@@ -17,6 +17,8 @@ Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell
 
 For examples of the kinds of files this generates, look at the [`expected`](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
 
+For some example man pages, look at the [`samples`](/samples/) folder.
+
 Detects subcommands (very basic): If a manpage is named `git-commit-tree`, it will
 look for the text `git commit tree`, `git-commit tree`, and `git commit-tree` in
 the file. When it finds the text `git commit-tree` in the man page, it will
@@ -58,7 +60,9 @@ so to configure that, set the `RUST_LOG` environment variable (the link has inst
 Things to do:
 
 - Port darwin and degroff parsers
+- Test the type 4 parser
 - Find samples of type 4, Darwin, and Degroff to test
 - Ensure nested subcommands and multiple subcommands work
-- Add .gz files to the tests, test excluding/including commands and directories
+- Add .gz files to the tests folder
+- Test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
