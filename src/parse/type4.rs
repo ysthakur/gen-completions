@@ -16,7 +16,7 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
       for para in paras {
         let data = util::remove_groff_formatting(para);
         let data = data.trim();
-        if let Some((options, desc)) = data.split_once("\n") {
+        if let Some((options, desc)) = data.split_once('\n') {
           if let Some(flag) = util::make_flag(options, Some(desc)) {
             flags.push(flag);
           }
