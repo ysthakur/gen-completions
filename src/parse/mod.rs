@@ -68,21 +68,22 @@ where
 {
   let text = text.as_ref();
   let mut all_flags: Option<Vec<Flag>> = None;
-  for res in [
+  for mut flags in [
     type1::parse(cmd_name, text),
     type2::parse(cmd_name, text),
     type3::parse(cmd_name, text),
     type4::parse(cmd_name, text),
     scdoc::parse(cmd_name, text),
-  ] {
-    if let Some(mut flags) = res {
-      match &mut all_flags {
-        Some(prev_flags) => {
-          prev_flags.append(&mut flags);
-        }
-        None => {
-          all_flags = Some(flags);
-        }
+  ]
+  .into_iter()
+  .flatten()
+  {
+    match &mut all_flags {
+      Some(prev_flags) => {
+        prev_flags.append(&mut flags);
+      }
+      None => {
+        all_flags = Some(flags);
       }
     }
   }
