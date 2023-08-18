@@ -3,6 +3,7 @@ name = "man-completions"
 version = "0.3.1"
 description = "Generate completions for Zsh and other shells from manpages"
 keywords = ["shell"]
+categories = ["command-line-utilities"]
 repository = "https://github.com/ysthakur/man-completions"
 homepage = "https://github.com/ysthakur/man-completions"
 license = "MIT"
