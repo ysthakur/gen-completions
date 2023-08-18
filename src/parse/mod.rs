@@ -57,14 +57,28 @@ where
     .to_string()
 }
 
+/// Parse flags from a man page, trying all of the different parsers and merging
+/// their results if multiple parsers could parse the man page. Returns
+/// None if none of them could parse the man page.
 pub fn parse_manpage_text<S>(text: S) -> Option<Vec<Flag>>
 where
   S: AsRef<str>,
 {
   let text = text.as_ref();
-  type1::parse(text)
-    .or_else(|| type2::parse(text))
-    .or_else(|| type3::parse(text))
+  let mut all_flags: Option<Vec<Flag>> = None;
+  for res in vec![type1::parse(text), type2::parse(text), type3::parse(text)] {
+    if let Some(mut flags) = res {
+      match &mut all_flags {
+        Some(prev_flags) => {
+          prev_flags.append(&mut flags);
+        }
+        None => {
+          all_flags = Some(flags);
+        }
+      }
+    }
+  }
+  all_flags
 }
 
 /// Decompress a manpage if necessary
@@ -99,13 +113,13 @@ where
 pub fn parse_from(
   cmd_name: &str,
   pre_info: CmdPreInfo,
-) -> (CommandInfo, Vec<Error>) {
+) -> (Option<CommandInfo>, Vec<Error>) {
   let mut flags = Vec::new();
   let mut subcommands = HashMap::new();
   let mut errors = Vec::new();
 
   if let Some(path) = pre_info.path {
-    match read_manpage(path) {
+    match read_manpage(&path) {
       Ok(text) => {
         if let Some(mut parsed) = parse_manpage_text(text) {
           flags.append(&mut parsed);
@@ -127,11 +141,16 @@ pub fn parse_from(
   for (sub_name, sub_info) in pre_info.subcmds {
     let (subcmd, mut sub_errors) =
       parse_from(&format!("{cmd_name} {sub_name}"), sub_info);
-    subcommands.insert(sub_name, subcmd);
+    subcmd.map(|c| subcommands.insert(sub_name, c));
     errors.append(&mut sub_errors);
   }
 
-  (CommandInfo { flags, subcommands }, errors)
+  let cmd_info = if flags.is_empty() && subcommands.is_empty() {
+    None
+  } else {
+    Some(CommandInfo { flags, subcommands })
+  };
+  (cmd_info, errors)
 }
 
 /// Make a tree relating commands to their subcommands

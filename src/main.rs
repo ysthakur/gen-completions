@@ -105,7 +105,7 @@ fn main() -> Result<()> {
   let all_cmds = detect_subcommands(manpages, args.subcmds);
   let total = all_cmds.len();
   for (i, (cmd_name, cmd_info)) in all_cmds.into_iter().enumerate() {
-    info!("Parsing {} ({}/{})", cmd_name, i + 1, total);
+    info!("Parsing {cmd_name} ({}/{})", i + 1, total);
 
     let (res, errors) = parse_from(&cmd_name, cmd_info);
 
@@ -113,8 +113,12 @@ fn main() -> Result<()> {
       error!("{}", error);
     }
 
-    info!("Generating completions for {}", cmd_name);
-    gen_shell(&args.shell, &cmd_name, &res, &args.out)?;
+    if let Some(cmd_info) = res {
+      info!("Generating completions for {cmd_name}");
+      gen_shell(&args.shell, &cmd_name, &cmd_info, &args.out)?;
+    } else {
+      warn!("Could not parse man page for {cmd_name}")
+    }
   }
 
   Ok(())
