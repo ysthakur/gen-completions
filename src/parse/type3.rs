@@ -1,5 +1,5 @@
 use log::debug;
-use regex::{Regex, RegexBuilder};
+use regex::RegexBuilder;
 
 use super::{util, Flag};
 

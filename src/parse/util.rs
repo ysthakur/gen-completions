@@ -36,10 +36,8 @@ pub fn get_section(title: &str, text: &str) -> Option<String> {
     .dot_matches_new_line(true)
     .build()
     .unwrap();
-  re.captures(text).map(|captures| {
-    let content = captures.get(1).unwrap().as_str();
-    content.strip_suffix(".SH").unwrap_or(content).to_string()
-  })
+  re.captures(text)
+    .map(|captures| captures.get(1).unwrap().as_str().to_string())
 }
 
 /// Copied more or less directly from Fish's `remove_groff_formatting`
