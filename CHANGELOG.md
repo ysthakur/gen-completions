@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/ysthakur/man-completions/compare/v0.3.0...v0.3.1) (2023-08-18)
+
+
+### Features
+
+* Add type4 parser (untested) ([0745256](https://github.com/ysthakur/man-completions/commit/074525613fa89597d9ae6ad9ee5b86b16e8e4ed1))
+* Implement type3 ([03c8e2f](https://github.com/ysthakur/man-completions/commit/03c8e2fcf9c1f0c75e2d9dfa21340f05c938d7b8))
+* scdoc parser ([857e11e](https://github.com/ysthakur/man-completions/commit/857e11ee31f6a734124cf063a9593f07187b6a7a))
+
 ## [0.3.0](https://github.com/ysthakur/man-completions/compare/v0.2.1...v0.3.0) (2023-08-17)
 
 
