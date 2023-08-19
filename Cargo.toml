@@ -1,6 +1,6 @@
 [package]
 name = "man-completions"
-version = "0.3.1"
+version = "0.3.2"
 description = "Generate completions for Zsh and other shells from manpages"
 keywords = ["shell"]
 categories = ["command-line-utilities"]
