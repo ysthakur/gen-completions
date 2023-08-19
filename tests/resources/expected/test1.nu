@@ -8,6 +8,11 @@ export extern "test1 sub1" [
   --foobar # Something something
 ]
 
+export extern "test1 sub1 nested" [
+  --command(-c) # Run a command or something
+  --install # Install a thing
+]
+
 export extern "test1 sub2" [
   --a # Both options should be picked up even though the short one is weird
   --all # Both options should be picked up even though the short one is weird

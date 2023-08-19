@@ -58,11 +58,6 @@ fn generate_cmd(
   out.writeln("]");
 
   for sub_cmd in &cmd.subcommands {
-    generate_cmd(
-      &format!("{} {}", cmd.name, sub_cmd.name),
-      sub_cmd,
-      out,
-      false,
-    );
+    generate_cmd(&format!("{cmd_name} {}", sub_cmd.name), sub_cmd, out, false);
   }
 }

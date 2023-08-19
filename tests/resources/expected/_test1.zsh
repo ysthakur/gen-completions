@@ -17,8 +17,21 @@ function _test1 {
 }
 
 function _test1_sub1 {
+	local line
+	_arguments -C \
+		'--foobar[Something something]' \
+		': :(nested)' \
+		'*::arg:->args'
+	case $line[1] in
+		nested) _test1_sub1_nested;;
+	esac
+}
+
+function _test1_sub1_nested {
 	_arguments \
-		'--foobar[Something something]'
+		'-c[Run a command or something]' \
+		'--command[Run a command or something]' \
+		'--install[Install a thing]'
 }
 
 function _test1_sub2 {

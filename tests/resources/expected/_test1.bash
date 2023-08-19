@@ -8,7 +8,16 @@ function _comp_cmd_test1 {
 			case ${COMP_WORDS[1]} in
 				sub1)
 					case $COMP_CWORD in
-						2) COMPREPLY=($(compgen -W '--foobar' -- $2)) ;;
+						2) COMPREPLY=($(compgen -W '--foobar nested' -- $2)) ;;
+						*)
+							case ${COMP_WORDS[2]} in
+								nested)
+									case $COMP_CWORD in
+										3) COMPREPLY=($(compgen -W '-c --command --install' -- $2)) ;;
+									esac
+									;;
+							esac
+							;;
 					esac
 					;;
 				sub2)

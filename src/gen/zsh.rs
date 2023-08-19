@@ -41,7 +41,7 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   let comp_name = format!("_{}", cmd.name);
   let mut res = Output::new(String::from("\t"));
   res.writeln(format!("#compdef {comp_name} {}", cmd.name));
-  generate_fn(cmd, &mut res, 0, &comp_name);
+  generate_fn(cmd, &mut res, &comp_name);
   fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
   Ok(())
 }
@@ -49,12 +49,10 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
 /// Generate a completion function for a command/subcommand
 ///
 /// ## Arguments
-/// * `pos` - If this is a top-level command, 0. Otherwise, if this is a
-///   subcommand, which argument number the subcommand is (how deep it is)
 /// * `fn` - What to name the completion function. If you have a command `foo`
 ///   with subcommand `bar`, the completion function for `foo bar` would be
 ///   named `_foo_bar`
-fn generate_fn(cmd: &CommandInfo, out: &mut Output, pos: usize, fn_name: &str) {
+fn generate_fn(cmd: &CommandInfo, out: &mut Output, fn_name: &str) {
   out.writeln("");
   out.writeln(format!("function {fn_name} {{"));
   out.indent();
@@ -97,7 +95,7 @@ fn generate_fn(cmd: &CommandInfo, out: &mut Output, pos: usize, fn_name: &str) {
     out.writeln("'*::arg:->args'");
     out.dedent();
 
-    out.writeln(format!("case $line[{}] in", pos + 1));
+    out.writeln("case $line[1] in");
     out.indent();
     for sub_cmd in &cmd.subcommands {
       out.writeln(format!("{}) {fn_name}_{};;", sub_cmd.name, sub_cmd.name));
@@ -110,11 +108,6 @@ fn generate_fn(cmd: &CommandInfo, out: &mut Output, pos: usize, fn_name: &str) {
   out.writeln("}");
 
   for sub_cmd in &cmd.subcommands {
-    generate_fn(
-      sub_cmd,
-      out,
-      pos + 1,
-      &format!("{fn_name}_{}", sub_cmd.name),
-    );
+    generate_fn(sub_cmd, out, &format!("{fn_name}_{}", sub_cmd.name));
   }
 }
