@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/ysthakur/man-completions/compare/v0.3.1...v0.3.2) (2023-08-19)
+
+
+### Bug Fixes
+
+* Make multiple subcommands work ([72d1c20](https://github.com/ysthakur/man-completions/commit/72d1c20f24ebb88a03ff6efdb5f049670c818ea1))
+* Nested subcommands ([7aa4801](https://github.com/ysthakur/man-completions/commit/7aa4801c83d06ac5285acdc15ed6758c709df481))
+
 ## [0.3.1](https://github.com/ysthakur/man-completions/compare/v0.3.0...v0.3.1) (2023-08-18)
 
 
