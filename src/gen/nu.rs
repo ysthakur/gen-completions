@@ -8,7 +8,10 @@ use crate::{gen::util::Output, parse::CommandInfo};
 pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   let mut res = Output::new(String::from("  "));
   generate_cmd(&cmd.name, cmd, &mut res, true);
-  fs::write(out_dir.join(format!("{}.nu", cmd.name)), res.text())?;
+  fs::write(
+    out_dir.join(format!("{}-completions.nu", cmd.name)),
+    res.text(),
+  )?;
   Ok(())
 }
 
