@@ -42,7 +42,7 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
     let file_name = match shell {
       "zsh" => format!("_{file_name}.zsh"),
       "bash" => format!("_{file_name}.bash"),
-      "nu" => format!("{file_name}.nu"),
+      "nu" => format!("{file_name}-completions.nu"),
       "json" => format!("{file_name}.json"),
       _ => todo!(),
     };
