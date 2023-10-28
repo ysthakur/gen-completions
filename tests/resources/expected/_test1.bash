@@ -13,7 +13,7 @@ function _comp_cmd_test1 {
 							case ${COMP_WORDS[2]} in
 								nested)
 									case $COMP_CWORD in
-										3) COMPREPLY=($(compgen -W '-c --command --install' -- $2)) ;;
+										3) COMPREPLY=($(compgen -W '-co --command --install' -- $2)) ;;
 									esac
 									;;
 							esac

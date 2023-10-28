@@ -29,7 +29,7 @@ function _test1_sub1 {
 
 function _test1_sub1_nested {
 	_arguments \
-		'-c[Run a command or something]' \
+		'-co[Run a command or something]' \
 		'--command[Run a command or something]' \
 		'--install[Install a thing]'
 }

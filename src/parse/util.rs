@@ -107,18 +107,23 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
   let delim = Regex::new(r#"[ ,="|]"#).unwrap();
   for option in delim.split(options) {
     let option = Regex::new(r"\[.*\]").unwrap().replace(option, "");
-    // todo Fish doesn't replace <.*> so maybe this is wrong
+    // todo Fish doesn't replace <.*> or (.*) so maybe this is wrong
     let option = Regex::new(r"<.*").unwrap().replace(&option, "");
     // todo this is ridiculously verbose
     let option = option
       .trim_matches(" \t\r\n[](){}.:!".chars().collect::<Vec<_>>().as_slice());
+    // TODO in future, handle stuff like `--no-[to|cc|bc]` (example from `git
+    // send-email`)
+    // Trim stuff like `-[foo` and `-)foo` from the end
+    // Something like `--foo=(+|\-)x` would otherwise be read as --foo and -x
+    let option = Regex::new(r"-[()\[\]].*$").unwrap().replace(option, "");
     if !option.starts_with('-') || option == "-" || option == "--" {
       continue;
     }
-    if Regex::new(r"\{\}\(\)").unwrap().is_match(option) {
+    if Regex::new(r"\{\}\(\)").unwrap().is_match(&option) {
       continue;
     }
-    forms.push(option.to_owned());
+    forms.push(option.to_string());
   }
 
   if forms.is_empty() {

@@ -9,7 +9,8 @@ export extern "test1 sub1" [
 ]
 
 export extern "test1 sub1 nested" [
-  --command(-c) # Run a command or something
+  -co # Run a command or something
+  --command # Run a command or something
   --install # Install a thing
 ]
 
