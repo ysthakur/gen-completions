@@ -37,5 +37,7 @@ function _test1_sub1_nested {
 function _test1_sub2 {
 	_arguments \
 		'--a[Both options should be picked up even though the short one is weird]' \
-		'--all[Both options should be picked up even though the short one is weird]'
+		'--all[Both options should be picked up even though the short one is weird]' \
+		'-C[The short form should be picked up as -C, not -Cdirectory (example from nano)]' \
+		'--backupdir[The short form should be picked up as -C, not -Cdirectory (example from nano)]'
 }

@@ -62,7 +62,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\^", "")
     .replace("{ ", "")
     .replace(" }", "")
-    .replace(r"\ ", "")
+    .replace(r"\ ", " ")
     .replace(r"\-", "-")
     .replace(r"\&", "")
     .replace(".B", "")

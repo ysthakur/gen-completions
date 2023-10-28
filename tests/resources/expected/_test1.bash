@@ -22,7 +22,7 @@ function _comp_cmd_test1 {
 					;;
 				sub2)
 					case $COMP_CWORD in
-						2) COMPREPLY=($(compgen -W '--a --all' -- $2)) ;;
+						2) COMPREPLY=($(compgen -W '--a --all -C --backupdir' -- $2)) ;;
 					esac
 					;;
 			esac
