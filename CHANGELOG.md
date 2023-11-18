@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0](https://github.com/ysthakur/man-completions/compare/v0.3.2...v0.4.0) (2023-11-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* <X>-completions.nu instead of <X>.nu
+
+### Features
+
+* &lt;X&gt;-completions.nu instead of <X>.nu ([6d776b3](https://github.com/ysthakur/man-completions/commit/6d776b3e3700e6243f7cb4da82beb03c5b3968f8))
+* Support Pod::Man ([31abecf](https://github.com/ysthakur/man-completions/commit/31abecf639aadf47b184cc37945f90cbf35f096c))
+
+
+### Bug Fixes
+
+* call completion function in generated zsh ([35cf344](https://github.com/ysthakur/man-completions/commit/35cf3442d760f14dbfde42a1bafe24502b4155b3))
+* Escape [] in zsh ([0b2ebcf](https://github.com/ysthakur/man-completions/commit/0b2ebcf28ed58a8037bbdb4930f1a69f754957a9))
+* Remove print debugging from podman.rs ([43e2d94](https://github.com/ysthakur/man-completions/commit/43e2d945d65745fdc783e61ead010b3d0101b585))
+* Turn '\ ' into ' ' ([fd38364](https://github.com/ysthakur/man-completions/commit/fd3836428900ef0f7f863a2aa8ac8a6cb49ebc88))
+
 ## [0.3.2](https://github.com/ysthakur/man-completions/compare/v0.3.1...v0.3.2) (2023-08-19)
 
 
