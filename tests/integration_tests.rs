@@ -141,3 +141,8 @@ fn type3_sed_json() {
 fn scdoc_sway_json() {
   run_test("json", &["sway"], &["--cmds", "^sway"]);
 }
+
+#[test]
+fn podman_ncdu_json() {
+  run_test("json", &["ncdu"], &["--cmds", "^ncdu"]);
+}

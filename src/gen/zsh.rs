@@ -42,6 +42,7 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   let mut res = Output::new(String::from("\t"));
   res.writeln(format!("#compdef {}", cmd.name));
   generate_fn(cmd, &mut res, &comp_name);
+  res.writeln("");
   res.writeln(format!(r#"{comp_name} "$@""#));
   fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
   Ok(())

@@ -67,7 +67,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\&", "")
     .replace(".B", "")
     .replace(r"\-", "-")
-    .replace(".I", "")
+    // .replace(".I", "") // This breaks podman since it removes .IX
     .replace('\u{C}', "")
     .replace(r"\(cq", "'")
     .replace(r"\(aq", "'"); // Added by me, not from Fish. May need to remove all \(xx

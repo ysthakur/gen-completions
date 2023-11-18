@@ -1,0 +1,151 @@
+{
+  "ncdu": {
+    "flags": [
+      {
+        "forms": ["-h", "--help"],
+        "description": "Print a short help message and quit"
+      },
+      {
+        "forms": ["-v", "-V", "--version"],
+        "description": "Print ncdu version and quit"
+      },
+      {
+        "forms": ["-f"],
+        "description": "Load the given file, which has earlier been created with the \\f(CW\\*(C`-o\\*(C..."
+      },
+      {
+        "forms": ["-o"],
+        "description": "Export all necessary information to \\s-1FILE\\s0 instead of opening the browse..."
+      },
+      {
+        "forms": ["-e", "--extended", "--no-extended"],
+        "description": "Enable/disable extended information mode. This will, in addition to the usual..."
+      },
+      {
+        "forms": ["--ignore-config"],
+        "description": "Do not attempt to load any configuration files. .SS \"Scan Options\" .IX Subsec..."
+      },
+      {
+        "forms": ["-x", "--one-file-system"],
+        "description": "Do not cross filesystem boundaries, i.e. only count files and directories on ..."
+      },
+      {
+        "forms": ["--cross-file-system"],
+        "description": "Do cross filesystem boundaries. This is the default, but can be specified to ..."
+      },
+      {
+        "forms": ["--exclude"],
+        "description": "Exclude files that match \\s-1PATTERN\\s0. The files will still be displayed by..."
+      },
+      {
+        "forms": ["-X", "--exclude-from"],
+        "description": "Exclude files that match any pattern in \\s-1FILE\\s0. Patterns should be separ..."
+      },
+      {
+        "forms": ["--include-caches", "--exclude-caches"],
+        "description": "Include (default) or exclude directories containing \\s-1CACHEDIR.TAG.\\s0  The..."
+      },
+      {
+        "forms": ["-L", "--follow-symlinks", "--no-follow-symlinks"],
+        "description": "Follow (or not) symlinks and count the size of the file they point to. As of ..."
+      },
+      {
+        "forms": ["--include-kernfs", "--exclude-kernfs"],
+        "description": "(Linux only) Include (default) or exclude Linux pseudo filesystems, e.g. /pro..."
+      },
+      {
+        "forms": ["-0"],
+        "description": "Don't give any feedback while scanning a directory or importing a file, other..."
+      },
+      {
+        "forms": ["-1"],
+        "description": "Similar to \\f(CW\\*(C`-0\\*(C', but does give feedback on the scanning progress..."
+      },
+      {
+        "forms": ["-2"],
+        "description": "Provide a full-screen ncurses interface while scanning a directory or importi..."
+      },
+      {
+        "forms": ["-q", "--slow-ui-updates", "--fast-ui-updates"],
+        "description": "Change the \\s-1UI\\s0 update interval while scanning or importing. Ncdu will u..."
+      },
+      {
+        "forms": ["--enable-shell", "--disable-shell"],
+        "description": "Enable or disable shell spawning from the browser. This feature is enabled by..."
+      },
+      {
+        "forms": ["--enable-delete", "--disable-delete"],
+        "description": "Enable or disable the built-in file deletion feature. This feature is enabled..."
+      },
+      {
+        "forms": ["--enable-refresh", "--disable-refresh"],
+        "description": "Enable or disable directory refreshing from the browser. This feature is enab..."
+      },
+      {
+        "forms": ["-r"],
+        "description": "Read-only mode. When given once, this is an alias for \\f(CW\\*(C`--disable-del..."
+      },
+      {
+        "forms": ["--si", "--no-si"],
+        "description": "List sizes using base 10 prefixes, that is, powers of 1000 (\\s-1KB, MB,\\s0 et..."
+      },
+      {
+        "forms": ["--disk-usage", "--apparent-size"],
+        "description": "Select whether to display disk usage (default) or apparent sizes. Can also be..."
+      },
+      {
+        "forms": ["--show-hidden", "--hide-hidden"],
+        "description": "Show (default) or hide \\*(L\"hidden\\*(R\" and excluded files. Can also be toggl..."
+      },
+      {
+        "forms": ["--show-itemcount", "--hide-itemcount"],
+        "description": "Show or hide (default) the item counts column. Can also be toggled in the bro..."
+      },
+      {
+        "forms": ["--show-mtime", "--hide-mtime"],
+        "description": "Show or hide (default) the last modification time column. Can also be toggled..."
+      },
+      {
+        "forms": ["--show-graph", "--hide-graph"],
+        "description": "Show (default) or hide the relative size bar column. Can also be toggled in t..."
+      },
+      {
+        "forms": ["--show-percent", "--hide-percent"],
+        "description": "Show (default) or hide the relative size percent column. Can also be toggled ..."
+      },
+      {
+        "forms": ["--graph-style"],
+        "description": "Change the way that the relative size bar column is drawn. Recognized values ..."
+      },
+      {
+        "forms": ["--shared-column"],
+        "description": "Set to off to disable the shared size column for directories, shared (default..."
+      },
+      {
+        "forms": ["--sort"],
+        "description": "Change the default column to sort on. Accepted values are disk-usage (the def..."
+      },
+      {
+        "forms": ["--enable-natsort", "--disable-natsort"],
+        "description": "Enable (default) or disable natural sort when sorting by file name"
+      },
+      {
+        "forms": ["--group-directories-first", "--no-group-directories-first"],
+        "description": "Sort (or not) directories before files"
+      },
+      {
+        "forms": ["--confirm-quit", "--no-confirm-quit"],
+        "description": "Require a confirmation before quitting ncdu. Very helpful when you accidental..."
+      },
+      {
+        "forms": ["--confirm-delete", "--no-confirm-delete"],
+        "description": "Require a confirmation before deleting a file or directory. Enabled by defaul..."
+      },
+      {
+        "forms": ["--color"],
+        "description": "Select a color scheme. The following schemes are recognized: off to disable c..."
+      }
+    ],
+    "subcommands": {}
+  }
+}

@@ -1,4 +1,4 @@
-#compdef _test1 test1
+#compdef test1
 
 function _test1 {
 	local line
@@ -41,3 +41,5 @@ function _test1_sub2 {
 		'-C[The short form should be picked up as -C, not -Cdirectory (example from nano)]' \
 		'--backupdir[The short form should be picked up as -C, not -Cdirectory (example from nano)]'
 }
+
+_test1 "$@"

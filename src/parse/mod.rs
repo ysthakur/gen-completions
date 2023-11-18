@@ -1,3 +1,4 @@
+mod podman;
 mod scdoc;
 mod type1;
 mod type2;
@@ -75,6 +76,7 @@ where
     type3::parse(cmd_name, text),
     type4::parse(cmd_name, text),
     scdoc::parse(cmd_name, text),
+    podman::parse(cmd_name, text),
   ]
   .into_iter()
   .flatten()
