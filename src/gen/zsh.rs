@@ -40,8 +40,9 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
   // TODO make option to not overwrite file
   let comp_name = format!("_{}", cmd.name);
   let mut res = Output::new(String::from("\t"));
-  res.writeln(format!("#compdef {comp_name} {}", cmd.name));
+  res.writeln(format!("#compdef {}", cmd.name));
   generate_fn(cmd, &mut res, &comp_name);
+  res.writeln(format!(r#"{comp_name} "$@""#));
   fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
   Ok(())
 }
@@ -57,12 +58,10 @@ fn generate_fn(cmd: &CommandInfo, out: &mut Output, fn_name: &str) {
   out.writeln(format!("function {fn_name} {{"));
   out.indent();
 
-  if !cmd.subcommands.is_empty() {
-    out.writeln("local line");
-  }
   if cmd.subcommands.is_empty() {
     out.write("_arguments");
   } else {
+    out.writeln("local line");
     out.write("_arguments -C");
   }
 
