@@ -13,6 +13,14 @@ it and generate completions yourself.
 
 Currently, only a couple kinds of manpages are supported.
 
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Flags](#flags)
+  - [Zsh](#zsh)
+  - [Bash](#bash)
+  - [Nushell](#nushell)
+- [Contributing](#contributing)
+
 Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py)
 
 For examples of the kinds of files this generates, look at the [`expected`](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
@@ -32,10 +40,21 @@ I will eventually get around to porting Fish's subcommand detection.
 - From the [Releases](https://github.com/ysthakur/man-completions/releases) page:
   Simply download the right executable for your platform from the latest release
 - As a Nix flake: `github:ysthakur/man-completions`
-  - Untested because I have no idea how to install packages that are flakes
+  - Try it out with `nix shell github:ysthakur/man-completions`
 - Build it yourself:
   - Download this repository (`git clone git@github.com:ysthakur/man-completions.git`)
   - `cd man-completions && cargo build --release`
+
+## Usage
+
+You can periodically run `man-completions` to generate completions for any commands you want.
+
+For example, if you have a directory `~/generated-completions` for all your generated
+completions, and you want to generate Zsh completions for `ncdu`, you can use:
+
+```shell
+man-completions -o ~/generated-completions -s zsh --cmds="ncdu" # For Bash, use -s bash
+```
 
 ## Flags
 
@@ -57,7 +76,29 @@ given directories, not inside `<dir>/man1`, `<dir>/man2`, etc.
 The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
 so to configure that, set the `RUST_LOG` environment variable (the link has instructions).
 
-Things to do:
+### Zsh
+
+You can either generate completions to a directory that's already in `$fpath`, where
+Zsh looks for functions, or you can make a new directory. If you choose to do the latter,
+make sure to add it to your `$fpath` in your `~/.zshrc` (**before** you call `compinit`)
+
+```zsh
+fpath=(path/to/my/directory $fpath)
+```
+
+### Bash
+
+TODO
+
+### Nushell
+
+TODO
+
+## Contributing
+
+Any contributions are welcome.
+
+Here are some things that need work:
 
 - Port darwin and degroff parsers
 - Test the type 4 parser
