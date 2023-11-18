@@ -69,9 +69,9 @@ fn generate_fn(cmd: &CommandInfo, out: &mut Output, fn_name: &str) {
   out.indent();
   for flag in &cmd.flags {
     let desc = if let Some(desc) = &flag.desc {
-      desc
+      desc.replace("[", "\\[").replace("]", "\\]")
     } else {
-      ""
+      "".to_string()
     };
     for form in &flag.forms {
       let text = util::quote_bash(format!("{form}[{desc}]"));

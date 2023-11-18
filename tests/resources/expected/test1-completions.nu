@@ -5,7 +5,7 @@ export extern "test1" [
 ]
 
 export extern "test1 sub1" [
-  --foobar # Something something
+  --foobar # Something something [brackets]
 ]
 
 export extern "test1 sub1 nested" [

@@ -19,7 +19,7 @@ function _test1 {
 function _test1_sub1 {
 	local line
 	_arguments -C \
-		'--foobar[Something something]' \
+		'--foobar[Something something \[brackets\]]' \
 		': :(nested)' \
 		'*::arg:->args'
 	case $line[1] in
