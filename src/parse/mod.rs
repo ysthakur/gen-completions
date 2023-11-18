@@ -129,7 +129,7 @@ pub fn parse_from(
   let mut errors = Vec::new();
 
   if let Some(path) = pre_info.path {
-    match read_manpage(&path) {
+    match read_manpage(path) {
       Ok(text) => {
         if let Some(mut parsed) = parse_manpage_text(cmd_name, text) {
           flags.append(&mut parsed);
