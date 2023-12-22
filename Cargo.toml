@@ -25,8 +25,9 @@ regex = "1.9"
 bzip2 = "0.4"
 flate2 = "1.0"
 
-# For parsing with serde
+# For deserializing from a file
 serde = "1.0"
+kdl = "4.6"
 serde_kdl = "0.1"
 serde_json = "1.0"
 serde_yaml = "0.9"

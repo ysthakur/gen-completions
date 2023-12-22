@@ -1,4 +1,5 @@
 mod bash;
+mod kdl;
 mod nu;
 mod util;
 mod zsh;
@@ -7,6 +8,7 @@ use std::{fs, io, path::Path};
 
 use clap::ValueEnum;
 
+use self::kdl::to_kdl_node;
 use crate::CommandInfo;
 
 #[derive(Debug, Copy, Clone, ValueEnum)]
@@ -35,19 +37,18 @@ pub fn generate(
     OutputFormat::Bash => bash::generate(cmd, out_dir)?,
     OutputFormat::Zsh => zsh::generate(cmd, out_dir)?,
     OutputFormat::Nu => nu::generate(cmd, out_dir)?,
-    OutputFormat::Kdl => todo!(),
-    OutputFormat::Json => write(
+    OutputFormat::Kdl => fs::write(
+      out_dir.join(format!("{}.kdl", cmd.name)),
+      &to_kdl_node(cmd).to_string(),
+    )?,
+    OutputFormat::Json => fs::write(
       out_dir.join(format!("{}.json", cmd.name)),
       &serde_json::to_string(cmd)?,
     )?,
-    OutputFormat::Yaml => write(
+    OutputFormat::Yaml => fs::write(
       out_dir.join(format!("{}.yaml", cmd.name)),
       &serde_yaml::to_string(cmd)?,
     )?,
   };
   Ok(())
-}
-
-fn write(out_dir: impl AsRef<Path>, text: &str) -> io::Result<()> {
-  fs::write(out_dir, text)
 }
