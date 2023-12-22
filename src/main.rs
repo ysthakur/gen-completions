@@ -1,32 +1,13 @@
-mod gen;
-mod parse_man;
-
-use std::{
-  path::{Path, PathBuf},
-  process::Command,
-};
+use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use log::{debug, error, info, warn};
-use regex::Regex;
-
-use crate::{
-  gen::CommandInfo,
+use man_completions::{
+  gen::{self, OutputFormat},
   parse_man::{detect_subcommands, get_cmd_name, parse_from},
 };
-
-#[derive(Debug, Clone, ValueEnum)]
-enum Shell {
-  /// Generate completions for Zsh
-  Zsh,
-  /// Generate completions for Bash
-  Bash,
-  /// Generate completions for Nushell
-  Nu,
-  /// Output parsed options as JSON
-  Json,
-}
+use regex::Regex;
 
 /// Generate completions from manpages
 #[derive(Debug, Parser)]
@@ -38,7 +19,7 @@ struct Cli {
 
   /// Shell(s) to generate completions for
   #[arg(short, long, value_name = "shell")]
-  shell: Shell,
+  shell: OutputFormat,
 
   /// Directories to search for man pages in, e.g.
   /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
@@ -77,20 +58,6 @@ fn subcmd_map_parser(
   Ok((String::from(page_name), as_subcmd))
 }
 
-fn gen_shell(
-  shell: &Shell,
-  parsed: &CommandInfo,
-  out_dir: &Path,
-) -> Result<()> {
-  match shell {
-    Shell::Zsh => gen::zsh::generate(parsed, out_dir)?,
-    Shell::Json => gen::json::generate(parsed, out_dir)?,
-    Shell::Bash => gen::bash::generate(parsed, out_dir)?,
-    Shell::Nu => gen::nu::generate(parsed, out_dir)?,
-  }
-  Ok(())
-}
-
 fn main() -> Result<()> {
   env_logger::init();
 
@@ -117,7 +84,7 @@ fn main() -> Result<()> {
 
     if let Some(cmd_info) = res {
       info!("Generating completions for {cmd_name}");
-      gen_shell(&args.shell, &cmd_info, &args.out)?;
+      gen::generate(&cmd_info, args.shell, &args.out)?;
     } else {
       warn!("Could not parse man page for {cmd_name}");
     }

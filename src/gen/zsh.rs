@@ -8,7 +8,7 @@ use crate::gen::{
 /// Generate a completion file for Zsh
 ///
 /// A shortened example with git
-/// ```no_run
+/// ```ignore
 /// #compdef _git git
 ///
 /// function _git {

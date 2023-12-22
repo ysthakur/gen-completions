@@ -16,12 +16,20 @@ strip = "debuginfo"
 
 [dependencies]
 anyhow = "1.0"
-bzip2 = "0.4"
 clap = { version = "4.3", features = ["derive", "env"] }
 env_logger = "0.10"
-flate2 = "1.0"
 log = "0.4"
 regex = "1.9"
+
+# For parsing manpages
+bzip2 = "0.4"
+flate2 = "1.0"
+
+# For parsing with serde
+serde = "1.0"
+serde_kdl = "0.1"
+serde_json = "1.0"
+serde_yaml = "0.9"
 
 [dev-dependencies]
 assert_cmd = "2.0"

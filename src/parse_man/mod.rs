@@ -1,3 +1,5 @@
+//! For parsing command information from man pages
+
 mod podman;
 mod scdoc;
 mod type1;
@@ -18,7 +20,7 @@ use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
 
-use crate::gen::{CommandInfo, Flag};
+use crate::{CommandInfo, Flag};
 
 /// Information about a command and its subcommands before being parsed
 pub struct CmdPreInfo {
