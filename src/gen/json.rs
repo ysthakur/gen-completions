@@ -2,7 +2,7 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
-use crate::{gen::util::Output, parse::CommandInfo};
+use crate::gen::{util::Output, CommandInfo};
 
 /// Generate JSON representing the parsed options
 ///

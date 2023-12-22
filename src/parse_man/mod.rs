@@ -18,21 +18,7 @@ use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
 
-/// Flags parsed from a command, as well as its parsed subcommands
-#[derive(Debug)]
-pub struct CommandInfo {
-  pub name: String,
-  pub flags: Vec<Flag>,
-  pub subcommands: Vec<CommandInfo>,
-}
-
-/// A parsed flag
-#[derive(Debug)]
-pub struct Flag {
-  /// The different short and long forms of a flag
-  pub forms: Vec<String>,
-  pub desc: Option<String>,
-}
+use crate::gen::{CommandInfo, Flag};
 
 /// Information about a command and its subcommands before being parsed
 pub struct CmdPreInfo {

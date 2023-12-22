@@ -2,8 +2,10 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 
-use super::util::Output;
-use crate::{gen::util, parse::CommandInfo};
+use crate::gen::{
+  util::{self, Output},
+  CommandInfo,
+};
 
 /// Generate a completion file for Zsh
 ///

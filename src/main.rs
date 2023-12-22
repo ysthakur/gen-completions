@@ -1,5 +1,5 @@
 mod gen;
-mod parse;
+mod parse_man;
 
 use std::{
   path::{Path, PathBuf},
@@ -9,10 +9,12 @@ use std::{
 use anyhow::{anyhow, Result};
 use clap::{Parser, ValueEnum};
 use log::{debug, error, info, warn};
-use parse::{detect_subcommands, parse_from};
 use regex::Regex;
 
-use crate::parse::{get_cmd_name, CommandInfo};
+use crate::{
+  gen::CommandInfo,
+  parse_man::{detect_subcommands, get_cmd_name, parse_from},
+};
 
 #[derive(Debug, Clone, ValueEnum)]
 enum Shell {
