@@ -1,11 +1,9 @@
 use std::{fs, path::Path};
 
-use anyhow::Result;
-
 use crate::gen::{util::Output, CommandInfo};
 
 /// Generate a completion file for Bash
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
   let comp_name = format!("_comp_cmd_{}", cmd.name);
 
   let mut out = Output::new(String::from("\t"));

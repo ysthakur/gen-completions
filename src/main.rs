@@ -83,11 +83,12 @@ fn gen_shell(
   out_dir: &Path,
 ) -> Result<()> {
   match shell {
-    Shell::Zsh => gen::zsh::generate(parsed, out_dir),
-    Shell::Json => gen::json::generate(parsed, out_dir),
-    Shell::Bash => gen::bash::generate(parsed, out_dir),
-    Shell::Nu => gen::nu::generate(parsed, out_dir),
+    Shell::Zsh => gen::zsh::generate(parsed, out_dir)?,
+    Shell::Json => gen::json::generate(parsed, out_dir)?,
+    Shell::Bash => gen::bash::generate(parsed, out_dir)?,
+    Shell::Nu => gen::nu::generate(parsed, out_dir)?,
   }
+  Ok(())
 }
 
 fn main() -> Result<()> {

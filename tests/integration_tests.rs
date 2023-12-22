@@ -1,4 +1,3 @@
-// use assert_cmd::prelude::*;
 use std::{
   env, fs,
   path::PathBuf,

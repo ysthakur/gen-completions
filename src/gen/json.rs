@@ -1,13 +1,11 @@
 use std::{fs, path::Path};
 
-use anyhow::Result;
-
 use crate::gen::{util::Output, CommandInfo};
 
 /// Generate JSON representing the parsed options
 ///
 /// This should probably use a real JSON library but whatever
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
   let mut res = Output::new(String::from("  "));
   res.writeln("{");
   res.indent();

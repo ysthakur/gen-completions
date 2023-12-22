@@ -1,7 +1,5 @@
 use std::{fs, path::Path};
 
-use anyhow::Result;
-
 use crate::gen::{
   util::{self, Output},
   CommandInfo,
@@ -38,7 +36,7 @@ use crate::gen::{
 ///         '-b[Make new branch]'
 /// }
 /// ```
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> Result<()> {
+pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
   // TODO make option to not overwrite file
   let comp_name = format!("_{}", cmd.name);
   let mut res = Output::new(String::from("\t"));
