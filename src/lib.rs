@@ -17,5 +17,6 @@ pub struct CommandInfo {
 pub struct Flag {
   /// The different short and long forms of a flag
   pub forms: Vec<String>,
+  /// Optional description for the flag
   pub desc: Option<String>,
 }

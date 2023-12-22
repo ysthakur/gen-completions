@@ -1,3 +1,5 @@
+//! Test parsing man pages
+
 use std::{
   env, fs,
   path::PathBuf,
@@ -12,7 +14,7 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
   // The project's root directory
   let root = env::var("CARGO_MANIFEST_DIR").unwrap();
 
-  let test_resources = PathBuf::from(root).join("tests/resources");
+  let test_resources = PathBuf::from(root).join("tests/resources/man");
   let in_dir = test_resources.join("in");
   let expected_dir = test_resources.join("expected");
 

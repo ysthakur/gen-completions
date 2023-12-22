@@ -4,7 +4,7 @@ mod nu;
 mod util;
 mod zsh;
 
-use std::{fs, io, path::Path};
+use std::{fs, path::Path};
 
 use clap::ValueEnum;
 
