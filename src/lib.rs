@@ -1,6 +1,6 @@
 pub mod gen;
-pub mod parse_man;
 pub mod parse_deser;
+pub mod parse_man;
 
 use serde::{Deserialize, Serialize};
 

@@ -31,10 +31,7 @@ pub struct CmdPreInfo {
 /// Get the command that a manpage is for, given its path
 ///
 /// e.g. `/foo/cowsay.1.txt -> "cowsay"`
-pub fn get_cmd_name<P>(manpage_path: P) -> String
-where
-  P: AsRef<Path>,
-{
+pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
   let file_name = manpage_path
     .as_ref()
     .file_name()
@@ -52,10 +49,10 @@ where
 /// Parse flags from a man page, trying all of the different parsers and merging
 /// their results if multiple parsers could parse the man page. Returns
 /// None if none of them could parse the man page.
-pub fn parse_manpage_text<S>(cmd_name: &str, text: S) -> Option<Vec<Flag>>
-where
-  S: AsRef<str>,
-{
+pub fn parse_manpage_text(
+  cmd_name: &str,
+  text: impl AsRef<str>,
+) -> Option<Vec<Flag>> {
   let text = text.as_ref();
   let mut all_flags: Option<Vec<Flag>> = None;
   for mut flags in [
@@ -82,10 +79,7 @@ where
 }
 
 /// Decompress a manpage if necessary
-pub fn read_manpage<P>(manpage_path: P) -> Result<String>
-where
-  P: AsRef<Path>,
-{
+pub fn read_manpage(manpage_path: impl AsRef<Path>) -> Result<String> {
   let path = manpage_path.as_ref();
   trace!("Reading man page at {}", path.display());
   match path.extension() {
@@ -161,15 +155,10 @@ pub fn parse_from(
 }
 
 /// Make a tree relating commands to their subcommands
-pub fn detect_subcommands<I, P, S>(
-  manpages: I,
-  explicit_subcmds: S,
-) -> HashMap<String, CmdPreInfo>
-where
-  I: IntoIterator<Item = P>,
-  P: AsRef<Path>,
-  S: IntoIterator<Item = (String, Vec<String>)>,
-{
+pub fn detect_subcommands(
+  manpages: impl IntoIterator<Item = impl AsRef<Path>>,
+  explicit_subcmds: impl IntoIterator<Item = (String, Vec<String>)>,
+) -> HashMap<String, CmdPreInfo> {
   let mut explicit_subcmds: HashMap<_, _> =
     explicit_subcmds.into_iter().collect();
 

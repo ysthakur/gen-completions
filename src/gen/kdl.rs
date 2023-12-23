@@ -13,7 +13,9 @@ pub fn to_kdl_node(cmd: &CommandInfo) -> KdlNode {
     let mut flag_node = KdlNode::new("-");
 
     for form in &flag.forms {
-      flag_node.entries_mut().push(KdlEntry::new(form.to_string()));
+      flag_node
+        .entries_mut()
+        .push(KdlEntry::new(form.to_string()));
     }
 
     if let Some(desc) = &flag.desc {

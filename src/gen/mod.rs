@@ -39,15 +39,15 @@ pub fn generate(
     OutputFormat::Nu => nu::generate(cmd, out_dir)?,
     OutputFormat::Kdl => fs::write(
       out_dir.join(format!("{}.kdl", cmd.name)),
-      &to_kdl_node(cmd).to_string(),
+      to_kdl_node(cmd).to_string(),
     )?,
     OutputFormat::Json => fs::write(
       out_dir.join(format!("{}.json", cmd.name)),
-      &serde_json::to_string(cmd)?,
+      serde_json::to_string(cmd)?,
     )?,
     OutputFormat::Yaml => fs::write(
       out_dir.join(format!("{}.yaml", cmd.name)),
-      &serde_yaml::to_string(cmd)?,
+      serde_yaml::to_string(cmd)?,
     )?,
   };
   Ok(())
