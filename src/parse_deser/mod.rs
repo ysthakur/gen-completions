@@ -2,6 +2,6 @@
 
 use std::path::Path;
 
-pub fn parse(file: impl AsRef<Path>) {
+pub fn parse(_file: impl AsRef<Path>) {
   todo!()
 }
