@@ -405,6 +405,7 @@ dependencies = [
  "serde_kdl",
  "serde_yaml",
  "tempfile",
+ "thiserror",
 ]
 
 [[package]]
