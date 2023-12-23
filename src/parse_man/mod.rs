@@ -31,24 +31,26 @@ pub struct CmdPreInfo {
 /// Get the command that a manpage is for, given its path
 ///
 /// e.g. `/foo/cowsay.1.txt -> "cowsay"`
+#[must_use]
 pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
   let file_name = manpage_path
     .as_ref()
     .file_name()
-    .unwrap()
+    .expect("Manpage should've had a valid file name")
     .to_string_lossy()
     .replace(std::char::REPLACEMENT_CHARACTER, "");
   // The file name will be something like foo.1.gz, we only want foo
-  file_name
-    .split('.')
-    .next()
-    .unwrap_or(&file_name)
-    .to_string()
+  if let Some(ind) = file_name.find('.') {
+    file_name[..ind].to_string()
+  } else {
+    file_name.to_string()
+  }
 }
 
 /// Parse flags from a man page, trying all of the different parsers and merging
 /// their results if multiple parsers could parse the man page. Returns
 /// None if none of them could parse the man page.
+#[must_use]
 pub fn parse_manpage_text(
   cmd_name: &str,
   text: impl AsRef<str>,
@@ -79,6 +81,11 @@ pub fn parse_manpage_text(
 }
 
 /// Decompress a manpage if necessary
+///
+/// # Errors
+///
+/// Fails if the manpage could not beo pened, or if it was a .gz or .bz2 file
+/// and could not be decompressed.
 pub fn read_manpage(manpage_path: impl AsRef<Path>) -> Result<String> {
   let path = manpage_path.as_ref();
   trace!("Reading man page at {}", path.display());
@@ -104,6 +111,7 @@ pub fn read_manpage(manpage_path: impl AsRef<Path>) -> Result<String> {
 /// Take a `CmdPreInfo` representing the path to a command and its subcommands
 /// and try parsing that command and its subcommands. Also returns a list of
 /// errors encountered along the way.
+#[must_use]
 pub fn parse_from(
   cmd_name: &str,
   pre_info: CmdPreInfo,
@@ -155,6 +163,7 @@ pub fn parse_from(
 }
 
 /// Make a tree relating commands to their subcommands
+#[must_use]
 pub fn detect_subcommands(
   manpages: impl IntoIterator<Item = impl AsRef<Path>>,
   explicit_subcmds: impl IntoIterator<Item = (String, Vec<String>)>,

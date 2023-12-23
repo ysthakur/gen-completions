@@ -27,6 +27,10 @@ pub enum OutputFormat {
   Yaml,
 }
 
+/// # Errors
+///
+/// Fails if it can't write to a file, or if serde can't serialize the command
+/// info (the second case should never happen).
 pub fn generate(
   cmd: &CommandInfo,
   format: OutputFormat,
