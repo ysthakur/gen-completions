@@ -124,6 +124,11 @@ fn test1_nu() {
 }
 
 #[test]
+fn test1_json() {
+  run_test("json", &["test1"], &["--cmds", "^test1"]);
+}
+
+#[test]
 fn type1_git_json() {
   run_test("json", &["git"], &["--cmds", "^git"]);
 }
