@@ -96,7 +96,7 @@ fn kdl_to_cmd_info(
 ) -> std::result::Result<CommandInfo, Vec<ParseError>> {
   let name = node.name().to_string();
   let mut flags = vec![];
-  let mut args = vec![];
+  let args = vec![]; // todo parse arg types at some point
   let mut subcommands = vec![];
 
   let mut errors = vec![];
@@ -121,7 +121,7 @@ fn kdl_to_cmd_info(
 
             if let Some(children) = node.children() {
               for flag_node in children.nodes() {
-                match kdl_to_flag(flag_node, &mut flag_spans) {
+                match parse_flag(flag_node, &mut flag_spans) {
                   Ok(flag) => flags.push(flag),
                   Err(mut errs) => errors.append(&mut errs),
                 }
@@ -173,13 +173,13 @@ fn kdl_to_cmd_info(
 
 /// `flag_spans` records the spans of all flags for the current command to find
 /// duplicates
-fn kdl_to_flag(
+fn parse_flag(
   node: &KdlNode,
   flag_spans: &mut HashMap<String, SourceSpan>,
 ) -> std::result::Result<Flag, Vec<ParseError>> {
   let mut forms = vec![];
   let mut desc = None;
-  let mut typ = None;
+  let typ = None; // todo actually parse this
 
   let mut errors = vec![];
 

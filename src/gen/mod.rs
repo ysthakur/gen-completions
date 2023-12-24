@@ -44,6 +44,7 @@ pub fn generate_to_file(
 }
 
 /// Generate completion for the given shell as a string
+#[must_use]
 pub fn generate_to_str(cmd: &CommandInfo, format: OutputFormat) -> String {
   let (_, text) = generate(cmd, format);
   text
