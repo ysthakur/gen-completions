@@ -30,7 +30,8 @@ pub enum ParseError {
   #[error("unexpected child {child_name}")]
   UnexpectedChild {
     child_name: String,
-    #[label("only flags and subcommands are allowed, not {child_name}")]
+    allowed: String,
+    #[label("only {allowed} are allowed, not {child_name}")]
     span: SourceSpan,
   },
 
@@ -132,7 +133,7 @@ fn kdl_to_cmd_info(
         "subcommands" => {
           if let Some(prev_span) = first_subcmds_node {
             errors.push(ParseError::DuplicateChild {
-              child_name: "flags".to_string(),
+              child_name: "subcommands".to_string(),
               span: *node.name().span(),
               prev_span,
             });
@@ -152,6 +153,7 @@ fn kdl_to_cmd_info(
         name => {
           errors.push(ParseError::UnexpectedChild {
             child_name: name.to_string(),
+            allowed: "flags and subcommands".to_string(),
             span: *node.name().span(),
           });
         }
@@ -224,15 +226,47 @@ fn parse_flag(
   }
 
   if let Some(doc) = node.children() {
-    if doc.nodes().len() == 1 {
-      let desc_node = &doc.nodes()[0];
-      if desc_node.children().is_some() || !desc_node.entries().is_empty() {
-        errors.push(ParseError::InvalidDescription(*desc_node.span()));
-      } else {
-        desc = Some(desc_node.name().value().to_string());
+    let mut first_desc_node = None;
+    let mut first_type_node = None;
+    for node in doc.nodes() {
+      match node.name().to_string().as_str() {
+        "desc" => {
+          if let Some(prev_span) = first_desc_node {
+            errors.push(ParseError::DuplicateChild {
+              child_name: "desc".to_string(),
+              span: *node.name().span(),
+              prev_span,
+            });
+          } else {
+            first_desc_node = Some(*node.name().span());
+            if node.entries().len() == 1 {
+              // todo account for invalid entry with name
+              desc = Some(strip_quotes(&node.entries()[0].value().to_string()));
+            } else {
+              todo!()
+            }
+          }
+        }
+        "type" => {
+          if let Some(prev_span) = first_type_node {
+            errors.push(ParseError::DuplicateChild {
+              child_name: "flags".to_string(),
+              span: *node.name().span(),
+              prev_span,
+            });
+          } else {
+            first_type_node = Some(*node.name().span());
+            todo!()
+          }
+        }
+        name => {
+          errors.push(ParseError::UnexpectedChild {
+            child_name: name.to_string(),
+            allowed: "desc and type".to_string(),
+            span: *node.name().span(),
+          });
+        }
       }
-    } else if doc.nodes().len() > 1 {
-      errors.push(ParseError::InvalidDescription(*doc.span()));
     }
   }
 
@@ -277,7 +311,7 @@ mod tests {
         foo {
           flags {
             "--help" "-h" {
-              "Show help output"
+              desc "Show help output"
             }
           }
         }
