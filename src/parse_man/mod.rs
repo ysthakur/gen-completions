@@ -1,3 +1,5 @@
+//! For parsing command information from man pages
+
 mod podman;
 mod scdoc;
 mod type1;
@@ -18,7 +20,7 @@ use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
 
-use crate::gen::{CommandInfo, Flag};
+use crate::{CommandInfo, Flag};
 
 /// Information about a command and its subcommands before being parsed
 pub struct CmdPreInfo {
@@ -29,31 +31,30 @@ pub struct CmdPreInfo {
 /// Get the command that a manpage is for, given its path
 ///
 /// e.g. `/foo/cowsay.1.txt -> "cowsay"`
-pub fn get_cmd_name<P>(manpage_path: P) -> String
-where
-  P: AsRef<Path>,
-{
+#[must_use]
+pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
   let file_name = manpage_path
     .as_ref()
     .file_name()
-    .unwrap()
+    .expect("Manpage should've had a valid file name")
     .to_string_lossy()
     .replace(std::char::REPLACEMENT_CHARACTER, "");
   // The file name will be something like foo.1.gz, we only want foo
-  file_name
-    .split('.')
-    .next()
-    .unwrap_or(&file_name)
-    .to_string()
+  if let Some(ind) = file_name.find('.') {
+    file_name[..ind].to_string()
+  } else {
+    file_name.to_string()
+  }
 }
 
 /// Parse flags from a man page, trying all of the different parsers and merging
 /// their results if multiple parsers could parse the man page. Returns
 /// None if none of them could parse the man page.
-pub fn parse_manpage_text<S>(cmd_name: &str, text: S) -> Option<Vec<Flag>>
-where
-  S: AsRef<str>,
-{
+#[must_use]
+pub fn parse_manpage_text(
+  cmd_name: &str,
+  text: impl AsRef<str>,
+) -> Option<Vec<Flag>> {
   let text = text.as_ref();
   let mut all_flags: Option<Vec<Flag>> = None;
   for mut flags in [
@@ -80,10 +81,12 @@ where
 }
 
 /// Decompress a manpage if necessary
-pub fn read_manpage<P>(manpage_path: P) -> Result<String>
-where
-  P: AsRef<Path>,
-{
+///
+/// # Errors
+///
+/// Fails if the manpage could not beo pened, or if it was a .gz or .bz2 file
+/// and could not be decompressed.
+pub fn read_manpage(manpage_path: impl AsRef<Path>) -> Result<String> {
   let path = manpage_path.as_ref();
   trace!("Reading man page at {}", path.display());
   match path.extension() {
@@ -108,25 +111,29 @@ where
 /// Take a `CmdPreInfo` representing the path to a command and its subcommands
 /// and try parsing that command and its subcommands. Also returns a list of
 /// errors encountered along the way.
+#[must_use]
 pub fn parse_from(
   cmd_name: &str,
   pre_info: CmdPreInfo,
 ) -> (Option<CommandInfo>, Vec<Error>) {
-  let mut flags = Vec::new();
+  // todo actually parse arg types
+  let args = Vec::new();
   let mut subcommands = Vec::new();
   let mut errors = Vec::new();
 
-  if let Some(path) = pre_info.path {
+  let flags = if let Some(path) = pre_info.path {
     match read_manpage(path) {
       Ok(text) => {
-        if let Some(mut parsed) = parse_manpage_text(cmd_name, text) {
-          flags.append(&mut parsed);
+        if let Some(parsed) = parse_manpage_text(cmd_name, text) {
+          parsed
         } else {
           errors.push(anyhow!("Could not parse man page for '{}'", cmd_name));
+          Vec::new()
         }
       }
       Err(e) => {
         errors.push(e);
+        Vec::new()
       }
     }
   } else {
@@ -134,7 +141,8 @@ pub fn parse_from(
       "Man page for parent command '{}' not found",
       cmd_name
     ));
-  }
+    Vec::new()
+  };
 
   for (sub_name, sub_info) in pre_info.subcmds {
     let (sub_cmd, mut sub_errors) =
@@ -152,6 +160,7 @@ pub fn parse_from(
     Some(CommandInfo {
       name: cmd_name.split(' ').last().unwrap().to_string(),
       flags,
+      args,
       subcommands,
     })
   };
@@ -159,15 +168,11 @@ pub fn parse_from(
 }
 
 /// Make a tree relating commands to their subcommands
-pub fn detect_subcommands<I, P, S>(
-  manpages: I,
-  explicit_subcmds: S,
-) -> HashMap<String, CmdPreInfo>
-where
-  I: IntoIterator<Item = P>,
-  P: AsRef<Path>,
-  S: IntoIterator<Item = (String, Vec<String>)>,
-{
+#[must_use]
+pub fn detect_subcommands(
+  manpages: impl IntoIterator<Item = impl AsRef<Path>>,
+  explicit_subcmds: impl IntoIterator<Item = (String, Vec<String>)>,
+) -> HashMap<String, CmdPreInfo> {
   let mut explicit_subcmds: HashMap<_, _> =
     explicit_subcmds.into_iter().collect();
 

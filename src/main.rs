@@ -1,68 +1,70 @@
-mod gen;
-mod parse_man;
-
-use std::{
-  path::{Path, PathBuf},
-  process::Command,
-};
+use std::{path::PathBuf, process::Command};
 
 use anyhow::{anyhow, Result};
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand};
 use log::{debug, error, info, warn};
-use regex::Regex;
-
-use crate::{
-  gen::CommandInfo,
+use gen_completions::{
+  gen::{self, OutputFormat},
+  parse_deser,
   parse_man::{detect_subcommands, get_cmd_name, parse_from},
 };
+use regex::Regex;
 
-#[derive(Debug, Clone, ValueEnum)]
-enum Shell {
-  /// Generate completions for Zsh
-  Zsh,
-  /// Generate completions for Bash
-  Bash,
-  /// Generate completions for Nushell
-  Nu,
-  /// Output parsed options as JSON
-  Json,
-}
-
-/// Generate completions from manpages
+/// Generate completions from either manpages or KDL/JSON/YAML files
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
 struct Cli {
-  /// Directory to output completions to
-  #[arg(short, long, value_name = "path")]
-  out: PathBuf,
+  #[command(subcommand)]
+  command: Commands,
+}
 
-  /// Shell(s) to generate completions for
-  #[arg(short, long, value_name = "shell")]
-  shell: Shell,
+#[derive(Debug, Subcommand)]
+enum Commands {
+  /// Generate completions from manpages
+  Man {
+    /// Shell(s) to generate completions for
+    shell: OutputFormat,
 
-  /// Directories to search for man pages in, e.g.
-  /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
-  #[arg(short, long, value_delimiter = ',', value_name = "path,...")]
-  dirs: Option<Vec<PathBuf>>,
+    /// Directory to output completions to
+    #[arg(value_delimiter = ',', value_name = "PATH")]
+    out: PathBuf,
 
-  /// Commands to generate completions for. If omitted, generates completions
-  /// for all found commands. To match the whole name, use "^...$"
-  #[arg(short, long, value_name = "regex")]
-  cmds: Option<Regex>,
+    /// Directories to search for man pages in, e.g.
+    /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
+    #[arg(short, long, value_delimiter = ',', value_name = "PATH,...")]
+    dirs: Option<Vec<PathBuf>>,
 
-  /// Commands to exclude (regex). To match the whole name, use "^...$"
-  #[arg(short = 'C', long, value_name = "regex")]
-  exclude_cmds: Option<Regex>,
+    /// Commands to generate completions for. If omitted, generates completions
+    /// for all found commands. To match the whole name, use "^...$"
+    #[arg(short, long, value_name = "REGEX")]
+    cmds: Option<Regex>,
 
-  /// Commands that should not be treated as subcommands, to help deal
-  /// with false positives when detecting subcommands.
-  #[arg(long, value_name = "command_name,...", value_delimiter = ',')]
-  not_subcmds: Vec<String>,
+    /// Commands to exclude (regex). To match the whole name, use "^...$"
+    #[arg(short = 'C', long, value_name = "REGEX")]
+    exclude_cmds: Option<Regex>,
 
-  /// Explicitly list which man pages are for which subcommands. e.g.
-  /// `git-commit=git commit,foobar=foo bar`
-  #[arg(long, value_name = "man-page=sub cmd,...", value_parser=subcmd_map_parser, value_delimiter = ',')]
-  subcmds: Vec<(String, Vec<String>)>,
+    /// Commands that should not be treated as subcommands, to help deal
+    /// with false positives when detecting subcommands.
+    #[arg(long, value_name = "COMMAND-NAME,...", value_delimiter = ',')]
+    not_subcmds: Vec<String>,
+
+    /// Explicitly list which man pages are for which subcommands. e.g.
+    /// `git-commit=git commit,foobar=foo bar`
+    #[arg(long, value_name = "man-page=sub cmd,...", value_parser=subcmd_map_parser, value_delimiter = ',')]
+    subcmds: Vec<(String, Vec<String>)>,
+  },
+  /// Generate completions from a file
+  For {
+    /// Shell(s) to generate completions for
+    #[arg(short, long, value_name = "shell")]
+    shell: OutputFormat,
+
+    /// File to generate completions from
+    conf: PathBuf,
+
+    /// File to generate completions to. Outputted to stdout if not given.
+    out: Option<PathBuf>,
+  },
 }
 
 fn subcmd_map_parser(
@@ -77,49 +79,54 @@ fn subcmd_map_parser(
   Ok((String::from(page_name), as_subcmd))
 }
 
-fn gen_shell(
-  shell: &Shell,
-  parsed: &CommandInfo,
-  out_dir: &Path,
-) -> Result<()> {
-  match shell {
-    Shell::Zsh => gen::zsh::generate(parsed, out_dir)?,
-    Shell::Json => gen::json::generate(parsed, out_dir)?,
-    Shell::Bash => gen::bash::generate(parsed, out_dir)?,
-    Shell::Nu => gen::nu::generate(parsed, out_dir)?,
-  }
-  Ok(())
-}
-
 fn main() -> Result<()> {
   env_logger::init();
 
   let args = Cli::parse();
 
-  let search_dirs = match args.dirs {
-    Some(dirs) => dirs.into_iter().collect::<Vec<_>>(),
-    None => enumerate_dirs(get_manpath()?),
-  };
+  match args.command {
+    Commands::Man {
+      shell,
+      out,
+      dirs,
+      cmds,
+      exclude_cmds,
+      not_subcmds: _, // todo actually use this
+      subcmds,
+    } => {
+      let search_dirs = match dirs {
+        Some(dirs) => dirs.into_iter().collect::<Vec<_>>(),
+        None => enumerate_dirs(get_manpath()?),
+      };
 
-  let manpages =
-    enumerate_manpages(search_dirs, &args.cmds, &args.exclude_cmds);
+      let manpages = enumerate_manpages(search_dirs, &cmds, &exclude_cmds);
 
-  let all_cmds = detect_subcommands(manpages, args.subcmds);
-  let total = all_cmds.len();
-  for (i, (cmd_name, cmd_info)) in all_cmds.into_iter().enumerate() {
-    info!("Parsing {cmd_name} ({}/{})", i + 1, total);
+      let all_cmds = detect_subcommands(manpages, subcmds);
+      let total = all_cmds.len();
+      for (i, (cmd_name, cmd_info)) in all_cmds.into_iter().enumerate() {
+        info!("Parsing {cmd_name} ({}/{})", i + 1, total);
 
-    let (res, errors) = parse_from(&cmd_name, cmd_info);
+        let (res, errors) = parse_from(&cmd_name, cmd_info);
 
-    for error in errors {
-      error!("{}", error);
+        for error in errors {
+          error!("{}", error);
+        }
+
+        if let Some(cmd_info) = res {
+          info!("Generating completions for {cmd_name}");
+          gen::generate_to_file(&cmd_info, shell, &out)?;
+        } else {
+          warn!("Could not parse man page for {cmd_name}");
+        }
+      }
     }
-
-    if let Some(cmd_info) = res {
-      info!("Generating completions for {cmd_name}");
-      gen_shell(&args.shell, &cmd_info, &args.out)?;
-    } else {
-      warn!("Could not parse man page for {cmd_name}");
+    Commands::For { shell, conf, out } => {
+      let cmd = parse_deser::parse(conf)?;
+      if let Some(out) = out {
+        gen::generate_to_file(&cmd, shell, out)?;
+      } else {
+        println!("{}", gen::generate_to_str(&cmd, shell));
+      }
     }
   }
 

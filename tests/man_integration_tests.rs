@@ -1,3 +1,5 @@
+//! Test parsing man pages
+
 use std::{
   env, fs,
   path::PathBuf,
@@ -12,7 +14,7 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
   // The project's root directory
   let root = env::var("CARGO_MANIFEST_DIR").unwrap();
 
-  let test_resources = PathBuf::from(root).join("tests/resources");
+  let test_resources = PathBuf::from(root).join("tests/resources/man");
   let in_dir = test_resources.join("in");
   let expected_dir = test_resources.join("expected");
 
@@ -20,13 +22,14 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
 
   // The man-completions binary to test
   let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
-  let cmd = cmd.env("MANPATH", &in_dir).args(args).args([
-    "--out",
-    &out_dir.path().display().to_string(),
-    "--shell",
-    shell,
-  ]);
-  // So we can explicitly ask for logging
+  let cmd = cmd
+    .env("MANPATH", &in_dir)
+    .arg("man")
+    .args(args)
+    .arg(shell)
+    .arg(&out_dir.path().display().to_string());
+
+    // So we can explicitly ask for logging
   if let Ok(log_level) = env::var("RUST_LOG") {
     cmd.env("RUST_LOG", log_level).stderr(Stdio::inherit());
   }
@@ -119,6 +122,11 @@ fn test1_bash() {
 #[test]
 fn test1_nu() {
   run_test("nu", &["test1"], &["--cmds", "^test1"]);
+}
+
+#[test]
+fn test1_json() {
+  run_test("json", &["test1"], &["--cmds", "^test1"]);
 }
 
 #[test]

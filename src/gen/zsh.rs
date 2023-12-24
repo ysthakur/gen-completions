@@ -1,5 +1,3 @@
-use std::{fs, path::Path};
-
 use crate::gen::{
   util::{self, Output},
   CommandInfo,
@@ -8,7 +6,7 @@ use crate::gen::{
 /// Generate a completion file for Zsh
 ///
 /// A shortened example with git
-/// ```no_run
+/// ```ignore
 /// #compdef _git git
 ///
 /// function _git {
@@ -36,7 +34,7 @@ use crate::gen::{
 ///         '-b[Make new branch]'
 /// }
 /// ```
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
+pub fn generate(cmd: &CommandInfo) -> (String, String) {
   // TODO make option to not overwrite file
   let comp_name = format!("_{}", cmd.name);
   let mut res = Output::new(String::from("\t"));
@@ -44,8 +42,7 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
   generate_fn(cmd, &mut res, &comp_name);
   res.writeln("");
   res.writeln(format!(r#"{comp_name} "$@""#));
-  fs::write(out_dir.join(format!("{comp_name}.zsh")), res.text())?;
-  Ok(())
+  (format!("{comp_name}.zsh"), res.text())
 }
 
 /// Generate a completion function for a command/subcommand

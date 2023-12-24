@@ -1,9 +1,7 @@
-use std::{fs, path::Path};
-
 use crate::gen::{util::Output, CommandInfo};
 
 /// Generate a completion file for Bash
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
+pub fn generate(cmd: &CommandInfo) -> (String, String) {
   let comp_name = format!("_comp_cmd_{}", cmd.name);
 
   let mut out = Output::new(String::from("\t"));
@@ -20,8 +18,7 @@ pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
 
   out.writeln(format!("complete -F _comp_cmd_{} {}", cmd.name, cmd.name));
 
-  fs::write(out_dir.join(format!("_{}.bash", cmd.name)), out.text())?;
-  Ok(())
+  (format!("_{}.bash", cmd.name), out.text())
 }
 
 fn generate_cmd(cmd: &CommandInfo, pos: usize, out: &mut Output) {

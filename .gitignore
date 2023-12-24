@@ -14,4 +14,4 @@ target/
 # Nix
 result/
 
-tests/resources/tmp/
+tests/**/tmp/
