@@ -1,16 +1,10 @@
-use std::{fs, path::Path};
-
 use crate::gen::{util::Output, CommandInfo};
 
 /// Generate completions for Nushell
-pub fn generate(cmd: &CommandInfo, out_dir: &Path) -> std::io::Result<()> {
+pub fn generate(cmd: &CommandInfo) -> (String, String) {
   let mut res = Output::new(String::from("  "));
   generate_cmd(&cmd.name, cmd, &mut res, true);
-  fs::write(
-    out_dir.join(format!("{}-completions.nu", cmd.name)),
-    res.text(),
-  )?;
-  Ok(())
+  (format!("{}-completions.nu", cmd.name), res.text())
 }
 
 fn generate_cmd(

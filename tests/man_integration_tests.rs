@@ -22,13 +22,14 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
 
   // The man-completions binary to test
   let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
-  let cmd = cmd.env("MANPATH", &in_dir).args(args).args([
-    "--out",
-    &out_dir.path().display().to_string(),
-    "--shell",
-    shell,
-  ]);
-  // So we can explicitly ask for logging
+  let cmd = cmd
+    .env("MANPATH", &in_dir)
+    .arg("man")
+    .args(args)
+    .arg(shell)
+    .arg(&out_dir.path().display().to_string());
+
+    // So we can explicitly ask for logging
   if let Ok(log_level) = env::var("RUST_LOG") {
     cmd.env("RUST_LOG", log_level).stderr(Stdio::inherit());
   }

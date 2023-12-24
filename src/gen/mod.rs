@@ -27,32 +27,43 @@ pub enum OutputFormat {
   Yaml,
 }
 
+/// Generate completion for the given shell and write to a file
+///
 /// # Errors
 ///
 /// Fails if it can't write to a file, or if serde can't serialize the command
 /// info (the second case should never happen).
-pub fn generate(
+pub fn generate_to_file(
   cmd: &CommandInfo,
   format: OutputFormat,
   out_dir: impl AsRef<Path>,
-) -> anyhow::Result<()> {
+) -> std::io::Result<()> {
   let out_dir = out_dir.as_ref();
+  let (file_name, text) = generate(cmd, format);
+  fs::write(out_dir.join(file_name), text)
+}
+
+/// Generate completion for the given shell as a string
+pub fn generate_to_str(cmd: &CommandInfo, format: OutputFormat) -> String {
+  let (_, text) = generate(cmd, format);
+  text
+}
+
+fn generate(cmd: &CommandInfo, format: OutputFormat) -> (String, String) {
   match format {
-    OutputFormat::Bash => bash::generate(cmd, out_dir)?,
-    OutputFormat::Zsh => zsh::generate(cmd, out_dir)?,
-    OutputFormat::Nu => nu::generate(cmd, out_dir)?,
-    OutputFormat::Kdl => fs::write(
-      out_dir.join(format!("{}.kdl", cmd.name)),
-      to_kdl_node(cmd).to_string(),
-    )?,
-    OutputFormat::Json => fs::write(
-      out_dir.join(format!("{}.json", cmd.name)),
-      serde_json::to_string(cmd)?,
-    )?,
-    OutputFormat::Yaml => fs::write(
-      out_dir.join(format!("{}.yaml", cmd.name)),
-      serde_yaml::to_string(cmd)?,
-    )?,
-  };
-  Ok(())
+    OutputFormat::Bash => bash::generate(cmd),
+    OutputFormat::Zsh => zsh::generate(cmd),
+    OutputFormat::Nu => nu::generate(cmd),
+    OutputFormat::Kdl => {
+      (format!("{}.kdl", cmd.name), to_kdl_node(cmd).to_string())
+    }
+    OutputFormat::Json => (
+      format!("{}.json", cmd.name),
+      serde_json::to_string(cmd).unwrap(),
+    ),
+    OutputFormat::Yaml => (
+      format!("{}.yaml", cmd.name),
+      serde_yaml::to_string(cmd).unwrap(),
+    ),
+  }
 }
