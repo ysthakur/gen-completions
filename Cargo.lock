@@ -277,6 +277,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen-completions"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "bzip2",
+ "clap",
+ "env_logger",
+ "flate2",
+ "kdl 4.6.0",
+ "log",
+ "miette",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_kdl",
+ "serde_yaml",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -386,28 +408,6 @@ name = "log"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
-
-[[package]]
-name = "man-completions"
-version = "0.4.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "bzip2",
- "clap",
- "env_logger",
- "flate2",
- "kdl 4.6.0",
- "log",
- "miette",
- "regex",
- "serde",
- "serde_json",
- "serde_kdl",
- "serde_yaml",
- "tempfile",
- "thiserror",
-]
 
 [[package]]
 name = "memchr"

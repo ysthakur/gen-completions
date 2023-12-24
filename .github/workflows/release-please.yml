@@ -19,7 +19,7 @@ jobs:
       - id: release
         uses: google-github-actions/release-please-action@v3
         with:
-          package-name: man-completions
+          package-name: gen-completions
           release-type: rust
           bump-minor-pre-major: true
           bump-patch-for-minor-pre-major: true

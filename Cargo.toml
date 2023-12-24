@@ -1,7 +1,7 @@
 [package]
-name = "man-completions"
-version = "0.4.0"
-description = "Generate completions for Zsh and other shells from manpages"
+name = "gen-completions"
+version = "0.1.0"
+description = "Generate Bash/Zsh completions from manpages or JSON/KDL files"
 keywords = ["shell"]
 categories = ["command-line-utilities"]
 repository = "https://github.com/ysthakur/man-completions"

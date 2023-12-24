@@ -3,7 +3,7 @@ use std::{path::PathBuf, process::Command};
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 use log::{debug, error, info, warn};
-use man_completions::{
+use gen_completions::{
   gen::{self, OutputFormat},
   parse_deser,
   parse_man::{detect_subcommands, get_cmd_name, parse_from},
