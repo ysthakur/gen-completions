@@ -6,7 +6,7 @@ use kdl::{KdlDocument, KdlNode};
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
-use crate::{CommandInfo, Flag};
+use crate::{ArgType, CommandInfo, Flag};
 
 /// An error encountered when deserializing KDL specifically
 #[derive(Debug, Diagnostic, Error)]
@@ -64,6 +64,13 @@ pub enum ParseError {
 
   #[error("invalid description, expected a single string")]
   InvalidDescription(#[label("should be a single string")] SourceSpan),
+
+  #[error("type is empty")]
+  #[diagnostic(help("remove the type node entirely"))]
+  EmptyType(#[label("node has no children")] SourceSpan),
+
+  #[error("invalid type")]
+  InvalidType(String, #[label("unknown type {0}")] SourceSpan),
 }
 
 type Result<T> = std::result::Result<T, KdlDeserError>;
@@ -181,7 +188,7 @@ fn parse_flag(
 ) -> std::result::Result<Flag, Vec<ParseError>> {
   let mut forms = vec![];
   let mut desc = None;
-  let typ = None; // todo actually parse this
+  let mut typ = None;
 
   let mut errors = vec![];
 
@@ -256,7 +263,34 @@ fn parse_flag(
             });
           } else {
             first_type_node = Some(*node.name().span());
-            todo!()
+
+            if let Some(children) = node.children() {
+              let mut types = Vec::new();
+              for type_node in children.nodes() {
+                let typ = match type_node.name().to_string().as_str() {
+                  "path" => Some(ArgType::Path),
+                  "dir" => Some(ArgType::Dir),
+                  // todo handle other variants
+                  typ => {
+                    errors.push(ParseError::InvalidType(
+                      typ.to_string(),
+                      *type_node.name().span(),
+                    ));
+                    None
+                  }
+                };
+                if let Some(typ) = typ {
+                  types.push(typ);
+                }
+              }
+              if types.len() == 1 {
+                typ = Some(types.pop().unwrap());
+              } else {
+                typ = Some(ArgType::Any(types));
+              }
+            } else {
+              errors.push(ParseError::EmptyType(*node.span()));
+            }
           }
         }
         name => {
@@ -291,7 +325,7 @@ fn strip_quotes(flag: &str) -> String {
 #[cfg(test)]
 mod tests {
   use super::{parse_from_str, Result};
-  use crate::{CommandInfo, Flag};
+  use crate::{CommandInfo, Flag, ArgType};
 
   #[test]
   fn test1() -> Result<()> {
@@ -301,7 +335,7 @@ mod tests {
         flags: vec![Flag {
           forms: vec!["--help".to_string(), "-h".to_string()],
           desc: Some("Show help output".to_string()),
-          typ: None,
+          typ: Some(ArgType::Path),
         }],
         args: vec![],
         subcommands: vec![]
@@ -312,6 +346,7 @@ mod tests {
           flags {
             "--help" "-h" {
               desc "Show help output"
+              type path
             }
           }
         }
