@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/ysthakur/man-completions/compare/v0.4.0...v0.4.1) (2023-12-24)
+
+
+### Features
+
+* trigger release ([e384d7e](https://github.com/ysthakur/man-completions/commit/e384d7e24dc4ddf4fdf3f2643a4aa88348a8d04a))
+
 ## [0.4.0](https://github.com/ysthakur/man-completions/compare/v0.3.2...v0.4.0) (2023-11-18)
 
 
