@@ -74,7 +74,7 @@ type Result<T> = std::result::Result<T, KdlDeserError>;
 /// Possible reasons for failure:
 /// - The document isn't valid KDL
 /// - The document doesn't have exactly one node
-/// - The format of the document doesn't match the shape of a CommandInfo
+/// - The format of the document doesn't match the shape of a [`CommandInfo`]
 pub fn parse_from_str(text: &str) -> Result<CommandInfo> {
   let doc: KdlDocument = text.parse()?;
   let nodes = doc.nodes();
@@ -169,7 +169,7 @@ fn kdl_to_cmd_info(
   }
 }
 
-/// flag_spans records the spans of all flags for the current command to find
+/// `flag_spans` records the spans of all flags for the current command to find
 /// duplicates
 fn kdl_to_flag(
   node: &KdlNode,
@@ -187,7 +187,7 @@ fn kdl_to_flag(
       flag: first_flag,
       span: *node.name().span(),
       prev_span: *prev_span,
-    })
+    });
   } else {
     forms.push(first_flag.clone());
     flag_spans.insert(first_flag, *node.name().span());
@@ -197,23 +197,22 @@ fn kdl_to_flag(
   for flag_entry in node.entries() {
     if let Some(name) = flag_entry.name() {
       errors.push(ParseError::InvalidFlag {
-        msg: format!("entry with name {}", name.to_string()),
+        msg: format!("entry with name {name}"),
         span: *flag_entry.span(),
-      })
+      });
     } else if !flag_entry.value().is_string_value() {
       errors.push(ParseError::InvalidFlag {
         msg: flag_entry.to_string(),
         span: *flag_entry.span(),
-      })
+      });
     } else {
-      let flag =
-        strip_quotes(&flag_entry.value().to_string());
+      let flag = strip_quotes(&flag_entry.value().to_string());
       if let Some(prev_span) = flag_spans.get(&flag) {
         errors.push(ParseError::DuplicateFlag {
           flag,
           span: *node.name().span(),
           prev_span: *prev_span,
-        })
+        });
       } else {
         forms.push(flag.clone());
         flag_spans.insert(flag, *node.name().span());
