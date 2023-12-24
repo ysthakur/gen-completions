@@ -26,25 +26,26 @@ enum Commands {
     shell: OutputFormat,
 
     /// Directory to output completions to
+    #[arg(value_delimiter = ',', value_name = "PATH")]
     out: PathBuf,
 
     /// Directories to search for man pages in, e.g.
     /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
-    #[arg(short, long, value_delimiter = ',', value_name = "path,...")]
+    #[arg(short, long, value_delimiter = ',', value_name = "PATH,...")]
     dirs: Option<Vec<PathBuf>>,
 
     /// Commands to generate completions for. If omitted, generates completions
     /// for all found commands. To match the whole name, use "^...$"
-    #[arg(short, long, value_name = "regex")]
+    #[arg(short, long, value_name = "REGEX")]
     cmds: Option<Regex>,
 
     /// Commands to exclude (regex). To match the whole name, use "^...$"
-    #[arg(short = 'C', long, value_name = "regex")]
+    #[arg(short = 'C', long, value_name = "REGEX")]
     exclude_cmds: Option<Regex>,
 
     /// Commands that should not be treated as subcommands, to help deal
     /// with false positives when detecting subcommands.
-    #[arg(long, value_name = "command_name,...", value_delimiter = ',')]
+    #[arg(long, value_name = "COMMAND-NAME,...", value_delimiter = ',')]
     not_subcmds: Vec<String>,
 
     /// Explicitly list which man pages are for which subcommands. e.g.

@@ -116,21 +116,24 @@ pub fn parse_from(
   cmd_name: &str,
   pre_info: CmdPreInfo,
 ) -> (Option<CommandInfo>, Vec<Error>) {
-  let mut flags = Vec::new();
+  // todo actually parse arg types
+  let args = Vec::new();
   let mut subcommands = Vec::new();
   let mut errors = Vec::new();
 
-  if let Some(path) = pre_info.path {
+  let flags = if let Some(path) = pre_info.path {
     match read_manpage(path) {
       Ok(text) => {
-        if let Some(mut parsed) = parse_manpage_text(cmd_name, text) {
-          flags.append(&mut parsed);
+        if let Some(parsed) = parse_manpage_text(cmd_name, text) {
+          parsed
         } else {
           errors.push(anyhow!("Could not parse man page for '{}'", cmd_name));
+          Vec::new()
         }
       }
       Err(e) => {
         errors.push(e);
+        Vec::new()
       }
     }
   } else {
@@ -138,7 +141,8 @@ pub fn parse_from(
       "Man page for parent command '{}' not found",
       cmd_name
     ));
-  }
+    Vec::new()
+  };
 
   for (sub_name, sub_info) in pre_info.subcmds {
     let (sub_cmd, mut sub_errors) =
@@ -156,6 +160,7 @@ pub fn parse_from(
     Some(CommandInfo {
       name: cmd_name.split(' ').last().unwrap().to_string(),
       flags,
+      args,
       subcommands,
     })
   };

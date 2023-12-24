@@ -96,6 +96,7 @@ fn kdl_to_cmd_info(
 ) -> std::result::Result<CommandInfo, Vec<ParseError>> {
   let name = node.name().to_string();
   let mut flags = vec![];
+  let mut args = vec![];
   let mut subcommands = vec![];
 
   let mut errors = vec![];
@@ -162,6 +163,7 @@ fn kdl_to_cmd_info(
     Ok(CommandInfo {
       name,
       flags,
+      args,
       subcommands,
     })
   } else {
@@ -177,6 +179,7 @@ fn kdl_to_flag(
 ) -> std::result::Result<Flag, Vec<ParseError>> {
   let mut forms = vec![];
   let mut desc = None;
+  let mut typ = None;
 
   let mut errors = vec![];
 
@@ -234,7 +237,7 @@ fn kdl_to_flag(
   }
 
   if errors.is_empty() {
-    Ok(Flag { forms, desc })
+    Ok(Flag { forms, desc, typ })
   } else {
     Err(errors)
   }
@@ -263,8 +266,10 @@ mod tests {
         name: "foo".to_string(),
         flags: vec![Flag {
           forms: vec!["--help".to_string(), "-h".to_string()],
-          desc: Some("Show help output".to_string())
+          desc: Some("Show help output".to_string()),
+          typ: None,
         }],
+        args: vec![],
         subcommands: vec![]
       },
       parse_from_str(
