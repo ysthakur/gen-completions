@@ -1,6 +1,5 @@
 use std::io;
 
-use kdl::KdlError;
 use thiserror::Error;
 
 use super::kdl::KdlDeserError;

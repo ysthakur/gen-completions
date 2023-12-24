@@ -399,6 +399,7 @@ dependencies = [
  "flate2",
  "kdl 4.6.0",
  "log",
+ "miette",
  "regex",
  "serde",
  "serde_json",
