@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Generate Bash/Zsh completions from manpages or JSON/KDL files"
 keywords = ["shell"]
 categories = ["command-line-utilities"]
-repository = "https://github.com/ysthakur/man-completions"
-homepage = "https://github.com/ysthakur/man-completions"
+repository = "https://github.com/ysthakur/gen-completions"
+homepage = "https://github.com/ysthakur/gen-completions"
 license = "MIT"
 edition = "2021"
 

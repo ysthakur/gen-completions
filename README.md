@@ -1,9 +1,9 @@
-# man-completions
+# gen-completions
 
-[![Tests](https://github.com/ysthakur/man-completions/actions/workflows/test.yml/badge.svg)](https://github.com/ysthakur/man-completions/actions)
-[![Lint](https://github.com/ysthakur/man-completions/actions/workflows/lint.yml/badge.svg)](https://github.com/ysthakur/man-completions/actions)
-[![Latest version](https://img.shields.io/crates/v/man-completions.svg)](https://crates.io/crates/man-completions)
-[![License](https://img.shields.io/crates/l/man-completions.svg)](./LICENSE.md)
+[![Tests](https://github.com/ysthakur/gen-completions/actions/workflows/test.yml/badge.svg)](https://github.com/ysthakur/gen-completions/actions)
+[![Lint](https://github.com/ysthakur/gen-completions/actions/workflows/lint.yml/badge.svg)](https://github.com/ysthakur/gen-completions/actions)
+[![Latest version](https://img.shields.io/crates/v/gen-completions.svg)](https://crates.io/crates/gen-completions)
+[![License](https://img.shields.io/crates/l/gen-completions.svg)](./LICENSE.md)
 
 This is a crate for parsing manpages to get completions for Zsh, Bash, Nushell,
 and, in the future, other shells.
@@ -36,24 +36,24 @@ I will eventually get around to porting Fish's subcommand detection.
 
 ## Installation
 
-- Using Cargo: `cargo install man-completions`
-- From the [Releases](https://github.com/ysthakur/man-completions/releases) page:
+- Using Cargo: `cargo install gen-completions`
+- From the [Releases](https://github.com/ysthakur/gen-completions/releases) page:
   Simply download the right executable for your platform from the latest release
-- As a Nix flake: `github:ysthakur/man-completions`
-  - Try it out with `nix shell github:ysthakur/man-completions`
+- As a Nix flake: `github:ysthakur/gen-completions`
+  - Try it out with `nix shell github:ysthakur/gen-completions`
 - Build it yourself:
-  - Download this repository (`git clone git@github.com:ysthakur/man-completions.git`)
-  - `cd man-completions && cargo build --release`
+  - Download this repository (`git clone git@github.com:ysthakur/gen-completions.git`)
+  - `cd gen-completions && cargo build --release`
 
 ## Usage
 
-You can periodically run `man-completions` to generate completions for any commands you want.
+You can periodically run `gen-completions` to generate completions for any commands you want.
 
 For example, if you have a directory `~/generated-completions` for all your generated
 completions, and you want to generate Zsh completions for `ncdu`, you can use:
 
 ```shell
-man-completions -o ~/generated-completions -s zsh --cmds="ncdu" # For Bash, use -s bash
+gen-completions -o ~/generated-completions -s zsh --cmds="ncdu" # For Bash, use -s bash
 ```
 
 ## Flags

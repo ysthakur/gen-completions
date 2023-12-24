@@ -8,7 +8,7 @@ use std::{
 
 use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
 
-const BIN_NAME: &str = "man-completions";
+const BIN_NAME: &str = "gen-completions";
 
 fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
   // The project's root directory
@@ -20,7 +20,7 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
 
   let out_dir = tempfile::tempdir().unwrap();
 
-  // The man-completions binary to test
+  // The gen-completions binary to test
   let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
   let cmd = cmd
     .env("MANPATH", &in_dir)
