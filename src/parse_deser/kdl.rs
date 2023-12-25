@@ -22,7 +22,14 @@ pub enum KdlDeserError {
 
   /// The text was valid KDL but could not be read as a [`CommandInfo`]
   #[error("errors encountered while reading command information")]
-  ParseError(#[source_code] String, #[related] Vec<ParseError>),
+  #[diagnostic(code(gen_completions::deser::parse_error), url(docsrs), help("get good"))]
+  ParseError {
+    #[source_code]
+    text: String,
+    #[diagnostic_source]
+    #[source]
+    source: ParseError,
+  },
 }
 
 #[derive(Debug, Diagnostic, Error)]
@@ -91,8 +98,13 @@ pub fn parse_from_str(text: &str) -> Result<CommandInfo> {
   } else if nodes.len() > 1 {
     Err(KdlDeserError::TooManyNodes(nodes.len()))
   } else {
-    kdl_to_cmd_info(&nodes[0])
-      .map_err(|errors| KdlDeserError::ParseError(text.to_string(), errors))
+    kdl_to_cmd_info(&nodes[0]).map_err(|mut errors| {
+      println!("{:?}", errors);
+      KdlDeserError::ParseError {
+        text: text.to_string(),
+        source: errors.pop().unwrap(),
+      }
+    })
   }
 }
 
@@ -311,6 +323,21 @@ fn parse_flag(
   }
 }
 
+// fn get_nodes(doc: &KdlDocument, names: &[String]) ->
+// std::result::Result<HashMap<String, KdlNode>, Vec<ParseError>> {
+//   let mut first_spans = HashMap::new();
+//   let mut nodes = HashMap::new();
+
+//   for node in doc.nodes() {
+//     let name = node.name().to_string();
+//     if names.contains(name) {
+//       todo!()
+//     }
+//   }
+
+//   nodes
+// }
+
 /// KDL returns values with quotes around them, so remove those
 fn strip_quotes(flag: &str) -> String {
   // todo check if strip_prefix/suffix is the right way to remove the quotes
@@ -325,7 +352,7 @@ fn strip_quotes(flag: &str) -> String {
 #[cfg(test)]
 mod tests {
   use super::{parse_from_str, Result};
-  use crate::{CommandInfo, Flag, ArgType};
+  use crate::{ArgType, CommandInfo, Flag};
 
   #[test]
   fn test1() -> Result<()> {

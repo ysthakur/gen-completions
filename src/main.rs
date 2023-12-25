@@ -1,13 +1,13 @@
 use std::{path::PathBuf, process::Command};
 
-use anyhow::{anyhow, Result};
+use miette::{miette, Result, IntoDiagnostic};
 use clap::{Parser, Subcommand};
-use log::{debug, error, info, warn};
 use gen_completions::{
   gen::{self, OutputFormat},
   parse_deser,
   parse_man::{detect_subcommands, get_cmd_name, parse_from},
 };
+use log::{debug, error, info, warn};
 use regex::Regex;
 
 /// Generate completions from either manpages or KDL/JSON/YAML files
@@ -56,7 +56,6 @@ enum Commands {
   /// Generate completions from a file
   For {
     /// Shell(s) to generate completions for
-    #[arg(short, long, value_name = "shell")]
     shell: OutputFormat,
 
     /// File to generate completions from
@@ -114,7 +113,7 @@ fn main() -> Result<()> {
 
         if let Some(cmd_info) = res {
           info!("Generating completions for {cmd_name}");
-          gen::generate_to_file(&cmd_info, shell, &out)?;
+          gen::generate_to_file(&cmd_info, shell, &out).into_diagnostic()?;
         } else {
           warn!("Could not parse man page for {cmd_name}");
         }
@@ -123,7 +122,7 @@ fn main() -> Result<()> {
     Commands::For { shell, conf, out } => {
       let cmd = parse_deser::parse(conf)?;
       if let Some(out) = out {
-        gen::generate_to_file(&cmd, shell, out)?;
+        gen::generate_to_file(&cmd, shell, out).into_diagnostic()?;
       } else {
         println!("{}", gen::generate_to_str(&cmd, shell));
       }
@@ -147,7 +146,7 @@ fn get_manpath() -> Result<Vec<PathBuf>> {
         Ok(manpath)
       } else {
         error!("Could not get path from 'man --path'");
-        Err(anyhow!("Please provide either the --dirs flag or set the MANPATH environment variable."))
+        Err(miette!("Please provide either the --dirs flag or set the MANPATH environment variable."))
       }
     }
   }
