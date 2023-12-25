@@ -5,6 +5,8 @@ mod kdl;
 
 use std::{fs, path::Path};
 
+use miette::NamedSource;
+
 use self::error::DeserError;
 use crate::{parse_deser::error::Error, CommandInfo};
 
@@ -34,10 +36,9 @@ pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
             "kdl" => InputFormat::Kdl,
             _ => return Err(Error::UnrecognizableExtension { file_path }),
           };
-          parse_from_str(&text, format).map_err(|e| Error::Deser {
-            file_path,
-            text,
-            source: e,
+          parse_from_str(&text, format).map_err(|error| Error::Deser {
+            source_code: NamedSource::new(file_path, text),
+            error,
           })
         } else {
           Err(Error::UnrecognizableExtension { file_path })

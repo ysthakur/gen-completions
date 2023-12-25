@@ -1,6 +1,6 @@
 use std::io;
 
-use miette::Diagnostic;
+use miette::{Diagnostic, NamedSource};
 use thiserror::Error;
 
 use super::kdl::KdlDeserError;
@@ -23,13 +23,13 @@ pub enum Error {
     source: io::Error,
   },
 
-  #[error("Error encountered while deserializing {file_path}")]
+  #[error("Error encountered while deserializing")]
+  #[diagnostic(forward(error))]
   Deser {
-    file_path: String,
     #[source_code]
-    text: String,
-    #[diagnostic_source]
-    source: DeserError,
+    source_code: NamedSource,
+    #[source]
+    error: DeserError,
   },
 }
 
@@ -37,6 +37,7 @@ pub enum Error {
 #[derive(Debug, Diagnostic, Error)]
 pub enum DeserError {
   #[error(transparent)]
+  #[diagnostic()]
   Json(#[from] serde_json::Error),
 
   #[error(transparent)]
