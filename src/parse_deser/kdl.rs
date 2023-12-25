@@ -43,7 +43,7 @@ pub enum ParseError {
   UnexpectedChild {
     child_name: String,
     allowed: String,
-    #[label("only {allowed} are allowed, not {child_name}")]
+    #[label("only {allowed} is allowed, not {child_name}")]
     span: SourceSpan,
   },
 
@@ -100,7 +100,7 @@ pub enum ParseError {
   InvalidType(String, #[label("unknown type {0}")] SourceSpan),
 }
 
-type Result<T> = std::result::Result<T, KdlDeserError>;
+type ParseResult<T> = std::result::Result<T, ParseError>;
 
 /// Parse a string as KDL and convert it to a [`CommandInfo`]
 ///
@@ -110,7 +110,9 @@ type Result<T> = std::result::Result<T, KdlDeserError>;
 /// - The document isn't valid KDL
 /// - The document doesn't have exactly one node
 /// - The format of the document doesn't match the shape of a [`CommandInfo`]
-pub fn parse_from_str(text: &str) -> Result<CommandInfo> {
+pub fn parse_from_str(
+  text: &str,
+) -> std::result::Result<CommandInfo, KdlDeserError> {
   let doc: KdlDocument = text.parse()?;
   let nodes = doc.nodes();
   if nodes.is_empty() {
@@ -128,63 +130,34 @@ pub fn parse_from_str(text: &str) -> Result<CommandInfo> {
 /// Convert a KDL node representing a command to a [`CommandInfo`]
 ///
 /// Returns a list of all errors encountered along the way, if it failed
-fn kdl_to_cmd_info(
-  node: &KdlNode,
-) -> std::result::Result<CommandInfo, ParseError> {
+fn kdl_to_cmd_info(node: &KdlNode) -> ParseResult<CommandInfo> {
   let name = node.name().to_string();
   let mut flags = vec![];
-  let args = vec![]; // todo parse arg types at some point
+  let mut args = vec![];
   let mut subcommands = vec![];
 
   if let Some(doc) = node.children() {
-    let mut first_flags_node = None;
-    let mut first_subcmds_node = None;
+    let nodes = get_nodes(doc, &["flags", "args", "desc"])?;
 
-    for node in doc.nodes() {
-      match node.name().to_string().as_str() {
-        "flags" => {
-          if let Some(prev_span) = first_flags_node {
-            return Err(ParseError::DuplicateChild {
-              child_name: "flags".to_string(),
-              span: *node.name().span(),
-              prev_span,
-            });
-          } else {
-            first_flags_node = Some(*node.name().span());
+    if let Some(flags_doc) = nodes.get("flags").and_then(|node| node.children())
+    {
+      let mut flag_spans = HashMap::new();
+      for flag_node in flags_doc.nodes() {
+        flags.push(parse_flag(flag_node, &mut flag_spans)?);
+      }
+    }
 
-            let mut flag_spans = HashMap::new();
+    if let Some(arg_doc) = nodes.get("args").and_then(|node| node.children()) {
+      for node in arg_doc.nodes() {
+        args.push(parse_type(node)?);
+      }
+    }
 
-            if let Some(children) = node.children() {
-              for flag_node in children.nodes() {
-                flags.push(parse_flag(flag_node, &mut flag_spans)?);
-              }
-            }
-          }
-        }
-        "subcommands" => {
-          if let Some(prev_span) = first_subcmds_node {
-            return Err(ParseError::DuplicateChild {
-              child_name: "subcommands".to_string(),
-              span: *node.name().span(),
-              prev_span,
-            });
-          } else {
-            first_subcmds_node = Some(*node.name().span());
-
-            if let Some(children) = node.children() {
-              for subcmd_node in children.nodes() {
-                subcommands.push(kdl_to_cmd_info(subcmd_node)?);
-              }
-            }
-          }
-        }
-        name => {
-          return Err(ParseError::UnexpectedChild {
-            child_name: name.to_string(),
-            allowed: "flags and subcommands".to_string(),
-            span: *node.name().span(),
-          });
-        }
+    if let Some(subcmds_doc) =
+      nodes.get("subcommands").and_then(|node| node.children())
+    {
+      for subcmd_node in subcmds_doc.nodes() {
+        subcommands.push(kdl_to_cmd_info(subcmd_node)?);
       }
     }
   }
@@ -202,7 +175,7 @@ fn kdl_to_cmd_info(
 fn parse_flag(
   node: &KdlNode,
   flag_spans: &mut HashMap<String, SourceSpan>,
-) -> std::result::Result<Flag, ParseError> {
+) -> ParseResult<Flag> {
   let mut forms = vec![];
   let mut desc = None;
   let mut typ = None;
@@ -248,71 +221,32 @@ fn parse_flag(
   }
 
   if let Some(doc) = node.children() {
-    let mut first_desc_node = None;
-    let mut first_type_node = None;
-    for node in doc.nodes() {
-      match node.name().to_string().as_str() {
-        "desc" => {
-          if let Some(prev_span) = first_desc_node {
-            return Err(ParseError::DuplicateChild {
-              child_name: "desc".to_string(),
-              span: *node.name().span(),
-              prev_span,
-            });
-          } else {
-            first_desc_node = Some(*node.name().span());
-            if node.entries().len() == 1 {
-              // todo account for invalid entry with name
-              desc = Some(strip_quotes(&node.entries()[0].value().to_string()));
-            } else {
-              todo!()
-            }
-          }
-        }
-        "type" => {
-          if let Some(prev_span) = first_type_node {
-            return Err(ParseError::DuplicateChild {
-              child_name: "flags".to_string(),
-              span: *node.name().span(),
-              prev_span,
-            });
-          } else {
-            first_type_node = Some(*node.name().span());
+    let nodes = get_nodes(doc, &["desc", "type"])?;
 
-            if let Some(children) = node.children() {
-              let mut types = Vec::new();
-              for type_node in children.nodes() {
-                let typ = match type_node.name().to_string().as_str() {
-                  "path" => ArgType::Path,
-                  "dir" => ArgType::Dir,
-                  // todo handle other variants
-                  typ => {
-                    return Err(ParseError::InvalidType(
-                      typ.to_string(),
-                      *type_node.name().span(),
-                    ));
-                  }
-                };
-                types.push(typ);
-              }
+    if let Some(desc_node) = nodes.get("desc") {
+      if desc_node.entries().len() == 1 {
+        // todo account for invalid entry with name
+        desc = Some(strip_quotes(&desc_node.entries()[0].value().to_string()));
+      } else {
+        todo!()
+      }
+    }
 
-              if types.len() == 1 {
-                typ = Some(types.pop().unwrap());
-              } else {
-                typ = Some(ArgType::Any(types));
-              }
-            } else {
-              return Err(ParseError::EmptyType(*node.span()));
-            }
-          }
+    if let Some(type_node) = nodes.get("type") {
+      if let Some(children) = type_node.children() {
+        let types = children
+          .nodes()
+          .iter()
+          .map(|node| parse_type(node))
+          .collect::<ParseResult<Vec<ArgType>>>()?;
+
+        if types.len() == 1 {
+          typ = Some(types.into_iter().next().unwrap());
+        } else {
+          typ = Some(ArgType::Any(types));
         }
-        name => {
-          return Err(ParseError::UnexpectedChild {
-            child_name: name.to_string(),
-            allowed: "desc and type".to_string(),
-            span: *node.name().span(),
-          });
-        }
+      } else {
+        return Err(ParseError::EmptyType(*type_node.span()));
       }
     }
   }
@@ -320,21 +254,37 @@ fn parse_flag(
   Ok(Flag { forms, desc, typ })
 }
 
-/// Get nodes with the given names, and error if there are duplicates or
-/// unrecognized nodes
-fn get_nodes(
-  doc: KdlDocument,
-  names: &[String],
-) -> std::result::Result<HashMap<String, KdlNode>, ParseError> {
-  let mut nodes = HashMap::<String, KdlNode>::new();
+/// Helper to treat a node as an [`ArgType`]
+fn parse_type(node: &KdlNode) -> ParseResult<ArgType> {
+  let typ = match node.name().to_string().as_str() {
+    "path" => ArgType::Path,
+    "dir" => ArgType::Dir,
+    // todo handle other variants
+    typ => {
+      return Err(ParseError::InvalidType(
+        typ.to_string(),
+        *node.name().span(),
+      ));
+    }
+  };
+  Ok(typ)
+}
 
-  for node in doc.into_iter() {
+/// Helper to get nodes with the given names. Errors if there are duplicates or
+/// unrecognized nodes
+fn get_nodes<'a>(
+  doc: &'a KdlDocument,
+  names: &[&str],
+) -> ParseResult<HashMap<String, &'a KdlNode>> {
+  let mut nodes = HashMap::<String, &'a KdlNode>::new();
+
+  for node in doc.nodes() {
     let name = node.name().to_string();
     let span = *node.name().span();
-    if !names.contains(&name) {
+    if !names.contains(&name.as_str()) {
       return Err(ParseError::UnexpectedChild {
         child_name: name,
-        allowed: names.join(", "),
+        allowed: format!("one of [{}]", names.join(", ")),
         span,
       });
     }
@@ -366,11 +316,11 @@ fn strip_quotes(flag: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-  use super::{parse_from_str, Result};
+  use super::parse_from_str;
   use crate::{ArgType, CommandInfo, Flag};
 
   #[test]
-  fn test1() -> Result<()> {
+  fn test1() -> miette::Result<()> {
     assert_eq!(
       CommandInfo {
         name: "foo".to_string(),
@@ -379,7 +329,7 @@ mod tests {
           desc: Some("Show help output".to_string()),
           typ: Some(ArgType::Path),
         }],
-        args: vec![],
+        args: vec![ArgType::Dir],
         subcommands: vec![]
       },
       parse_from_str(
@@ -388,8 +338,13 @@ mod tests {
           flags {
             "--help" "-h" {
               desc "Show help output"
-              type path
+              type {
+                path
+              }
             }
+          }
+          args {
+            dir
           }
         }
       "#

@@ -36,4 +36,5 @@ serde_yaml = "0.9"
 
 [dev-dependencies]
 assert_cmd = "2.0"
+miette = { version = "5.10", features = ["fancy"] }
 tempfile = "3"
