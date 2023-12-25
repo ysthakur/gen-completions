@@ -3,7 +3,9 @@
 use log::debug;
 use regex::{Regex, RegexBuilder};
 
-use super::Flag;
+use super::{error::ParseError, Flag};
+
+pub type ParseResult = std::result::Result<Vec<Flag>, ParseError>;
 
 /// Maximum length of a description
 ///
@@ -146,8 +148,16 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
 
       let desc = trim_desc(&desc);
       let desc = if desc.is_empty() { None } else { Some(desc) };
-      Some(Flag { forms, desc, typ: None })
+      Some(Flag {
+        forms,
+        desc,
+        typ: None,
+      })
     }
-    None => Some(Flag { forms, desc: None, typ: None }),
+    None => Some(Flag {
+      forms,
+      desc: None,
+      typ: None,
+    }),
   }
 }

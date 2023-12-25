@@ -1,5 +1,6 @@
 //! For parsing command information from man pages
 
+pub mod error;
 mod podman;
 mod scdoc;
 mod type1;
@@ -15,14 +16,16 @@ use std::{
   path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, Error, Result};
 use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
+use miette::NamedSource;
 
-use crate::{CommandInfo, Flag};
+use crate::{parse_man::error::Error, CommandInfo, Flag};
 
-/// Information about a command and its subcommands before being parsed
+pub type Result<T> = std::result::Result<T, Error>;
+
+/// Information about a command and its detected subcommands before being parsed
 pub struct CmdPreInfo {
   path: Option<PathBuf>,
   subcmds: HashMap<String, CmdPreInfo>,
@@ -48,36 +51,48 @@ pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
 }
 
 /// Parse flags from a man page, trying all of the different parsers and merging
-/// their results if multiple parsers could parse the man page. Returns
-/// None if none of them could parse the man page.
-#[must_use]
+/// their results if multiple parsers could parse the man page.
+///
+/// # Errors
+///
+/// Fails if none of the manpage parsers could understand the text, or if one of
+/// them encountered an error.
 pub fn parse_manpage_text(
   cmd_name: &str,
   text: impl AsRef<str>,
-) -> Option<Vec<Flag>> {
+) -> Result<Vec<Flag>> {
   let text = text.as_ref();
-  let mut all_flags: Option<Vec<Flag>> = None;
-  for mut flags in [
-    type1::parse(cmd_name, text),
-    type2::parse(cmd_name, text),
-    type3::parse(cmd_name, text),
-    type4::parse(cmd_name, text),
-    scdoc::parse(cmd_name, text),
-    podman::parse(cmd_name, text),
+
+  let mut all_flags = Vec::new();
+  let mut supported = false;
+  for flags in [
+    type1::try_parse(cmd_name, text),
+    type2::try_parse(cmd_name, text),
+    type3::try_parse(cmd_name, text),
+    type4::try_parse(cmd_name, text),
+    scdoc::try_parse(cmd_name, text),
+    podman::try_parse(cmd_name, text),
   ]
   .into_iter()
   .flatten()
   {
-    match &mut all_flags {
-      Some(prev_flags) => {
-        prev_flags.append(&mut flags);
-      }
-      None => {
-        all_flags = Some(flags);
+    match flags {
+      Ok(mut flags) => all_flags.append(&mut flags),
+      Err(e) => {
+        return Err(Error::ParseError {
+          source_code: NamedSource::new("", text.to_owned()),
+          source: e,
+        })
       }
     }
+    supported = true;
   }
-  all_flags
+
+  if !supported {
+    Err(Error::UnsupportedFormat())
+  } else {
+    Ok(all_flags)
+  }
 }
 
 /// Decompress a manpage if necessary
@@ -86,7 +101,7 @@ pub fn parse_manpage_text(
 ///
 /// Fails if the manpage could not beo pened, or if it was a .gz or .bz2 file
 /// and could not be decompressed.
-pub fn read_manpage(manpage_path: impl AsRef<Path>) -> Result<String> {
+pub fn read_manpage(manpage_path: impl AsRef<Path>) -> std::io::Result<String> {
   let path = manpage_path.as_ref();
   trace!("Reading man page at {}", path.display());
   match path.extension() {
@@ -123,24 +138,19 @@ pub fn parse_from(
 
   let flags = if let Some(path) = pre_info.path {
     match read_manpage(path) {
-      Ok(text) => {
-        if let Some(parsed) = parse_manpage_text(cmd_name, text) {
-          parsed
-        } else {
-          errors.push(anyhow!("Could not parse man page for '{}'", cmd_name));
-          Vec::new()
-        }
-      }
-      Err(e) => {
+      Ok(text) => parse_manpage_text(cmd_name, text).unwrap_or_else(|e| {
         errors.push(e);
+        Vec::new()
+      }),
+      Err(e) => {
+        errors.push(e.into());
         Vec::new()
       }
     }
   } else {
-    errors.push(anyhow!(
-      "Man page for parent command '{}' not found",
-      cmd_name
-    ));
+    errors.push(Error::ManpageNotFound {
+      cmd_name: cmd_name.to_string(),
+    });
     Vec::new()
   };
 

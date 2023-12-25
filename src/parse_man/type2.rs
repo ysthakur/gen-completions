@@ -1,13 +1,14 @@
 use log::debug;
 use regex::Regex;
 
-use super::{util, Flag};
+use super::util::{self, ParseResult};
 
 /// Ported from Fish's `Type2ManParser`
-pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
-  match util::get_section("OPTIONS", page_text) {
-    Some(content) => {
-      let mut flags = Vec::new();
+pub fn try_parse(cmd_name: &str, page_text: &str) -> Option<ParseResult> {
+  util::get_section("OPTIONS", page_text).map(|content| parse(cmd_name, &content))
+}
+fn parse(cmd_name: &str, content: &str) -> ParseResult {
+  let mut flags = Vec::new();
 
       // todo this diverges from the Fish impl for splitting, check if it's okay
       // need to see more samples of manpages of this kind
@@ -15,7 +16,7 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
         Regex::new(&format!(r"\.[IT]P( {}i?)?", util::NUM_RE)).unwrap();
       let para_end = Regex::new(r"\.(IP|TP|UNINDENT|UN|SH)").unwrap();
 
-      let mut paras = para_re.split(&content);
+      let mut paras = para_re.split(content);
       paras.next(); // Discard the part before the first option
       for para in paras {
         let data = if let Some(mat) = para_end.find(para) {
@@ -41,8 +42,5 @@ pub fn parse(cmd_name: &str, page_text: &str) -> Option<Vec<Flag>> {
         }
       }
 
-      Some(flags)
-    }
-    None => None,
-  }
+      Ok(flags)
 }

@@ -15,7 +15,6 @@ lto = "thin"
 strip = "debuginfo"
 
 [dependencies]
-anyhow = "1.0"
 clap = { version = "4.3", features = ["derive", "env"] }
 env_logger = "0.10"
 thiserror = "1.0"

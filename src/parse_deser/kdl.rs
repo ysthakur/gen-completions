@@ -237,7 +237,7 @@ fn parse_flag(
         let types = children
           .nodes()
           .iter()
-          .map(|node| parse_type(node))
+          .map(parse_type)
           .collect::<ParseResult<Vec<ArgType>>>()?;
 
         if types.len() == 1 {
