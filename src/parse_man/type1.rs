@@ -11,7 +11,7 @@ pub fn try_parse(cmd_name: &str, page_text: &str) -> Option<ParseResult> {
 }
 
 fn parse(cmd_name: &str, content: &str) -> ParseResult {
-  let mut flags = Vec::new();
+  let mut flags = vec![];
 
   let mut paras = content.split(".PP");
   paras.next(); // Discard the part before the first option

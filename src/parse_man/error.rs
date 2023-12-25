@@ -28,4 +28,5 @@ pub enum Error {
 }
 
 #[derive(Debug, Diagnostic, Error)]
-pub enum ParseError {}
+#[error("{0}")]
+pub struct ParseError(String);

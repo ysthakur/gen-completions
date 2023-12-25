@@ -104,6 +104,6 @@ fn preprocess(cmd: &CommandInfo) -> CommandInfo {
     name: cmd.name.clone(),
     flags,
     args: cmd.args.clone(),
-    subcommands: cmd.subcommands.iter().map(|cmd| preprocess(cmd)).collect(),
+    subcommands: cmd.subcommands.iter().map(preprocess).collect(),
   }
 }

@@ -213,10 +213,9 @@ fn parse_flag(
           span: *node.name().span(),
           prev_span: *prev_span,
         });
-      } else {
-        forms.push(flag.clone());
-        flag_spans.insert(flag, *node.name().span());
       }
+      forms.push(flag.clone());
+      flag_spans.insert(flag, *node.name().span());
     }
   }
 
