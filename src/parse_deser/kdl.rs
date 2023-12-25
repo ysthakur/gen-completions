@@ -12,29 +12,39 @@ use crate::{ArgType, CommandInfo, Flag};
 #[derive(Debug, Diagnostic, Error)]
 pub enum KdlDeserError {
   #[error(transparent)]
+  #[diagnostic(transparent)]
   SyntaxError(#[from] kdl::KdlError),
 
-  #[error("file was empty, expected one node")]
+  #[error("File was empty, expected one node")]
+  #[diagnostic(code(gen_completions::deser::empty_file), url(docsrs))]
   EmptyFile,
 
-  #[error("expected exactly one node, got {0}")]
+  #[error("Expected exactly one node, got {0}")]
+  #[diagnostic(code(gen_completions::deser::too_many_nodes), url(docsrs))]
   TooManyNodes(usize),
 
   /// The text was valid KDL but could not be read as a [`CommandInfo`]
-  #[error("errors encountered while reading command information")]
-  #[diagnostic(code(gen_completions::deser::parse_error), url(docsrs), help("get good"))]
+  #[error("Errors encountered while reading command information")]
+  #[diagnostic(
+    code(gen_completions::deser::parse_error),
+    url(docsrs),
+    help("get good")
+  )]
   ParseError {
     #[source_code]
     text: String,
-    #[diagnostic_source]
-    #[source]
-    source: ParseError,
+    #[related]
+    related: Vec<ParseError>,
   },
 }
 
 #[derive(Debug, Diagnostic, Error)]
 pub enum ParseError {
   #[error("unexpected child {child_name}")]
+  #[diagnostic(
+    code(gen_completions::deser::kdl::unexpected_child),
+    url(docsrs)
+  )]
   UnexpectedChild {
     child_name: String,
     allowed: String,
@@ -43,7 +53,11 @@ pub enum ParseError {
   },
 
   #[error("duplicate child node")]
-  #[diagnostic(help("merge the {child_name} nodes together"))]
+  #[diagnostic(
+    code(gen_completions::deser::kdl::duplicate_child),
+    url(docsrs),
+    help("merge the {child_name} nodes together")
+  )]
   DuplicateChild {
     child_name: String,
     #[label("duplicate node named {child_name}")]
@@ -53,6 +67,7 @@ pub enum ParseError {
   },
 
   #[error("duplicate flag")]
+  #[diagnostic(code(gen_completions::deser::kdl::duplicate_flag), url(docsrs))]
   DuplicateFlag {
     flag: String,
     #[label("duplicate flag")]
@@ -62,7 +77,11 @@ pub enum ParseError {
   },
 
   #[error("flags should be strings, got {msg}")]
-  #[diagnostic(help("wrap your flags in quotes"))]
+  #[diagnostic(
+    code(gen_completions::deser::kdl::invalid_flag),
+    url(docsrs),
+    help("wrap your flags in quotes")
+  )]
   InvalidFlag {
     msg: String,
     #[label("should be a single string")]
@@ -70,13 +89,19 @@ pub enum ParseError {
   },
 
   #[error("invalid description, expected a single string")]
+  #[diagnostic(code(gen_completions::deser::kdl::invalid_desc), url(docsrs))]
   InvalidDescription(#[label("should be a single string")] SourceSpan),
 
   #[error("type is empty")]
-  #[diagnostic(help("remove the type node entirely"))]
+  #[diagnostic(
+    code(gen_completions::deser::kdl::empty_type),
+    url(docsrs),
+    help("remove the type node entirely")
+  )]
   EmptyType(#[label("node has no children")] SourceSpan),
 
   #[error("invalid type")]
+  #[diagnostic(code(gen_completions::deser::kdl::invalid_type), url(docsrs))]
   InvalidType(String, #[label("unknown type {0}")] SourceSpan),
 }
 
@@ -98,12 +123,9 @@ pub fn parse_from_str(text: &str) -> Result<CommandInfo> {
   } else if nodes.len() > 1 {
     Err(KdlDeserError::TooManyNodes(nodes.len()))
   } else {
-    kdl_to_cmd_info(&nodes[0]).map_err(|mut errors| {
-      println!("{:?}", errors);
-      KdlDeserError::ParseError {
-        text: text.to_string(),
-        source: errors.pop().unwrap(),
-      }
+    kdl_to_cmd_info(&nodes[0]).map_err(|mut errors| KdlDeserError::ParseError {
+      text: text.to_string(),
+      related: vec![errors.pop().unwrap()],
     })
   }
 }

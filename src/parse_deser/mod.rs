@@ -36,6 +36,7 @@ pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
           };
           parse_from_str(&text, format).map_err(|e| Error::Deser {
             file_path,
+            text,
             source: e,
           })
         } else {
