@@ -56,12 +56,17 @@ completions, and you want to generate Zsh completions for `ncdu`, you can use:
 gen-completions -o ~/generated-completions -s zsh --cmds="ncdu" # For Bash, use -s bash
 ```
 
+## Arguments
+
+- Shells to generate completions for: `zsh`, `bash`, `nu`, or `json` (required)
+  - e.g. `zsh`
+- Directory to output files to (required)
+  - `e.g. ~/generated-completions`
+
 ## Flags
 
 | Short form | Long form | Description |
 |-|-|-|
-| `-o` | `--out` | Directory to output files to (required) |
-| `-s` | `--shells` | Shells to generate completions for: `zsh`, `bash`, `nu`, or `json` (required) |
 | `-d` | `--dirs` | Directories to search in (comma-separated) |
 | `-c` | `--cmds` | Regex to search for only specific commands |
 | `-C` | `--exclude-cmds` | Regex to exclude certain commands |
@@ -80,11 +85,22 @@ so to configure that, set the `RUST_LOG` environment variable (the link has inst
 
 You can either generate completions to a directory that's already in `$fpath`, where
 Zsh looks for functions, or you can make a new directory. If you choose to do the latter,
-make sure to add it to your `$fpath` in your `~/.zshrc` (**before** you call `compinit`)
+make sure to add it to your `$fpath` in your `~/.zshrc`:
 
 ```zsh
 fpath=(path/to/my/directory $fpath)
 ```
+
+> [!note]
+> `fpath` must be updated **before** `compinit` is called.
+
+After this, if your chosen directory is `~/generated-completions`, you can run
+
+```zsh
+gen-completions man zsh ~/generated-completions --cmds="^ncdu"
+```
+
+and when you try `ncdu <TAB>`, you should see completions for all of ncdu's flags.
 
 ### Bash
 
@@ -101,9 +117,8 @@ Any contributions are welcome.
 Here are some things that need work:
 
 - Port darwin and degroff parsers
-- Test the type 4 parser
 - Find samples of type 4, Darwin, and Degroff to test
-- Add .gz files to the tests folder
+- Add .gz and .bz2 files to the tests folder?
 - Test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
 - Handle options like `-vv` and `-/` in Nushell
