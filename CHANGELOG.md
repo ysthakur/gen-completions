@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/ysthakur/man-completions/compare/v0.4.1...v0.5.0) (2023-12-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* Changes to KDL format
+
+### Features
+
+* Also generate completions from KDL/JSON/YAML ([#12](https://github.com/ysthakur/man-completions/issues/12)) ([1c36fd2](https://github.com/ysthakur/man-completions/commit/1c36fd2a32b266b35e40840bcc84ee1ff7b52a78))
+* Changes to KDL format ([366d05a](https://github.com/ysthakur/man-completions/commit/366d05aa009ed9d433813479d0941da5ba0f5a5c))
+
 ## [0.4.1](https://github.com/ysthakur/man-completions/compare/v0.4.0...v0.4.1) (2023-12-24)
 
 
