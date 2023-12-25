@@ -36,14 +36,16 @@ pub fn to_kdl_node(cmd: &CommandInfo) -> KdlNode {
   flags.set_children(flag_nodes);
   children.nodes_mut().push(flags);
 
-  let mut subcommands = KdlDocument::new();
-  for subcmd in &cmd.subcommands {
-    subcommands.nodes_mut().push(to_kdl_node(subcmd));
-  }
+  if !cmd.subcommands.is_empty() {
+    let mut subcommands = KdlDocument::new();
+    for subcmd in &cmd.subcommands {
+      subcommands.nodes_mut().push(to_kdl_node(subcmd));
+    }
 
-  let mut subcommands_node = KdlNode::new("subcommands");
-  subcommands_node.set_children(subcommands);
-  children.nodes_mut().push(subcommands_node);
+    let mut subcommands_node = KdlNode::new("subcommands");
+    subcommands_node.set_children(subcommands);
+    children.nodes_mut().push(subcommands_node);
+  }
 
   node.set_children(children);
   node

@@ -11,9 +11,9 @@ pub struct CommandInfo {
   #[serde(skip_serializing_if = "Vec::is_empty")]
   pub flags: Vec<Flag>,
   /// The types of the arguments to this command
-  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub args: Vec<ArgType>,
-  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub subcommands: Vec<CommandInfo>,
 }
 
@@ -23,9 +23,9 @@ pub struct Flag {
   /// The different short and long forms of a flag
   pub forms: Vec<String>,
   /// Optional description for the flag
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub desc: Option<String>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub typ: Option<ArgType>,
 }
 
