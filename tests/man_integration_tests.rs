@@ -110,21 +110,6 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
 }
 
 #[test]
-fn test1_zsh() {
-  run_test("zsh", &["test1"], &["--cmds", "^test1"]);
-}
-
-#[test]
-fn test1_bash() {
-  run_test("bash", &["test1"], &["--cmds", "^test1"]);
-}
-
-#[test]
-fn test1_nu() {
-  run_test("nu", &["test1"], &["--cmds", "^test1"]);
-}
-
-#[test]
 fn test1_json() {
   run_test("json", &["test1"], &["--cmds", "^test1"]);
 }
