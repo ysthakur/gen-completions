@@ -1,5 +1,4 @@
 //! For parsing command information from man pages
-
 pub mod error;
 mod podman;
 mod scdoc;
@@ -88,10 +87,10 @@ pub fn parse_manpage_text(
     supported = true;
   }
 
-  if !supported {
-    Err(Error::UnsupportedFormat())
-  } else {
+  if supported {
     Ok(all_flags)
+  } else {
+    Err(Error::UnsupportedFormat())
   }
 }
 

@@ -7,33 +7,19 @@ use super::{error::ParseError, Flag};
 
 pub type ParseResult = std::result::Result<Vec<Flag>, ParseError>;
 
-/// Maximum length of a description
-///
-/// After this, `...` will be added
-static MAX_DESC_LEN: usize = 80;
-
-static ELLIPSIS: &str = "...";
-
 /// Match roff numeric expressions
 pub static NUM_RE: &str = r"(\d+(\.\d)?)";
 
 pub fn trim_desc(desc: &str) -> String {
   // Remove extra spaces after sentence ends
   let re = Regex::new(r"\.\s+").unwrap();
-  let desc = re.replace_all(desc, ". ");
-
-  // TODO port the sentence-splitting part too
-  // https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py#L211
-  if desc.len() > MAX_DESC_LEN {
-    format!("{}{}", &desc[0..MAX_DESC_LEN - ELLIPSIS.len()], ELLIPSIS)
-  } else {
-    desc.to_string()
-  }
+  re.replace_all(desc, ". ").to_string()
 }
 
 /// Get the contents of a section with the given title
 pub fn get_section(title: &str, text: &str) -> Option<String> {
-  let re = RegexBuilder::new(&format!(r#"\.SH {title}(.*?)(\.SH|\z)"#))
+  // [hH] is necessary for Darwin
+  let re = RegexBuilder::new(&format!(r#"\.S[hH] {title}(.*?)(\.S[hH]|\z)"#))
     .multi_line(true)
     .dot_matches_new_line(true)
     .build()

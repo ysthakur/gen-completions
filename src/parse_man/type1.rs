@@ -1,8 +1,6 @@
 use log::debug;
 
-use super::{
-  util::{self, ParseResult},
-};
+use super::util::{self, ParseResult};
 
 /// Ported from Fish's `Type1ManParser`
 ///

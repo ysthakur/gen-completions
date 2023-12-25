@@ -30,7 +30,7 @@ pub struct Flag {
 }
 
 /// How to complete an argument
-#[derive(Debug, Deserialize, Eq, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Serialize, PartialEq)]
 pub enum ArgType {
   /// Complete using either file or directory paths
   Path,

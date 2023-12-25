@@ -9,7 +9,13 @@ use std::{fs, path::Path};
 use clap::ValueEnum;
 
 use self::kdl::to_kdl_node;
-use crate::CommandInfo;
+use crate::{CommandInfo, Flag};
+
+/// Maximum length of a description
+///
+/// After this, `...` will be added
+static MAX_DESC_LEN: usize = 80;
+static ELLIPSIS: &str = "...";
 
 #[derive(Debug, Copy, Clone, ValueEnum)]
 pub enum OutputFormat {
@@ -51,20 +57,53 @@ pub fn generate_to_str(cmd: &CommandInfo, format: OutputFormat) -> String {
 }
 
 fn generate(cmd: &CommandInfo, format: OutputFormat) -> (String, String) {
+  let cmd = preprocess(cmd);
   match format {
-    OutputFormat::Bash => bash::generate(cmd),
-    OutputFormat::Zsh => zsh::generate(cmd),
-    OutputFormat::Nu => nu::generate(cmd),
+    OutputFormat::Bash => bash::generate(&cmd),
+    OutputFormat::Zsh => zsh::generate(&cmd),
+    OutputFormat::Nu => nu::generate(&cmd),
     OutputFormat::Kdl => {
-      (format!("{}.kdl", cmd.name), to_kdl_node(cmd).to_string())
+      (format!("{}.kdl", cmd.name), to_kdl_node(&cmd).to_string())
     }
     OutputFormat::Json => (
       format!("{}.json", cmd.name),
-      serde_json::to_string(cmd).unwrap(),
+      serde_json::to_string(&cmd).unwrap(),
     ),
     OutputFormat::Yaml => (
       format!("{}.yaml", cmd.name),
-      serde_yaml::to_string(cmd).unwrap(),
+      serde_yaml::to_string(&cmd).unwrap(),
     ),
+  }
+}
+
+/// Trim descriptions
+/// todo pass the max description length as an option
+/// possibly have each generator do the trimming separately
+fn preprocess(cmd: &CommandInfo) -> CommandInfo {
+  let flags: Vec<Flag> = cmd
+    .flags
+    .iter()
+    .map(|flag| {
+      // TODO port the sentence-splitting part too
+      // https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py#L211
+      let desc = flag.desc.as_ref().map(|desc| {
+        if desc.len() > MAX_DESC_LEN {
+          format!("{}{}", &desc[0..MAX_DESC_LEN - ELLIPSIS.len()], ELLIPSIS)
+        } else {
+          desc.to_owned()
+        }
+      });
+      Flag {
+        forms: flag.forms.clone(),
+        desc,
+        typ: flag.typ.clone(),
+      }
+    })
+    .collect();
+  CommandInfo {
+    name: cmd.name.clone(),
+    flags,
+    args: cmd.args.clone(),
+    subcommands: cmd.subcommands.iter().map(|cmd| preprocess(cmd)).collect(),
   }
 }

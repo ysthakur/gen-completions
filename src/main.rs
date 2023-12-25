@@ -1,6 +1,5 @@
 use std::{path::PathBuf, process::Command};
 
-use miette::{miette, Result, IntoDiagnostic};
 use clap::{Parser, Subcommand};
 use gen_completions::{
   gen::{self, OutputFormat},
@@ -8,6 +7,7 @@ use gen_completions::{
   parse_man::{detect_subcommands, get_cmd_name, parse_from},
 };
 use log::{debug, error, info, warn};
+use miette::{miette, IntoDiagnostic, Result};
 use regex::Regex;
 
 /// Generate completions from either manpages or KDL/JSON/YAML files

@@ -29,7 +29,7 @@ fn run_test(shell: &str, outputs: &[&str], args: &[&str]) {
     .arg(shell)
     .arg(&out_dir.path().display().to_string());
 
-    // So we can explicitly ask for logging
+  // So we can explicitly ask for logging
   if let Ok(log_level) = env::var("RUST_LOG") {
     cmd.env("RUST_LOG", log_level).stderr(Stdio::inherit());
   }

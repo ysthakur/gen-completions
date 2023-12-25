@@ -1,18 +1,17 @@
 use log::debug;
 use regex::RegexBuilder;
 
-use super::{
-  util::{self, ParseResult},
-};
+use super::util::{self, ParseResult};
 
 /// Ported from Fish's `Type3ManParser`
 /// Fish's `Type3ManParser` doesn't handle HP...IP...HP, but the man page for
 /// sed, at least, uses that, so this parser handles that too.
-#[allow(clippy::case_sensitive_file_extension_comparisons)]
 pub fn try_parse(cmd_name: &str, page_text: &str) -> Option<ParseResult> {
   util::get_section("DESCRIPTION", page_text)
     .map(|content| parse(cmd_name, &content))
 }
+
+#[allow(clippy::case_sensitive_file_extension_comparisons)]
 fn parse(cmd_name: &str, content: &str) -> ParseResult {
   let mut flags = Vec::new();
 
