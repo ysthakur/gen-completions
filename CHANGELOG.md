@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/ysthakur/man-completions/compare/v0.5.0...v0.5.1) (2023-12-25)
+
+
+### Features
+
+* Parse type (kdl) ([51303ba](https://github.com/ysthakur/man-completions/commit/51303ba11620b17df9a7e325df89ebb4aa221e18))
+
 ## [0.5.0](https://github.com/ysthakur/man-completions/compare/v0.4.1...v0.5.0) (2023-12-25)
 
 
