@@ -210,7 +210,7 @@ fn parse_flag(
       if let Some(prev_span) = flag_spans.get(&flag) {
         return Err(ParseError::DuplicateFlag {
           flag,
-          span: *node.name().span(),
+          span: *flag_entry.span(),
           prev_span: *prev_span,
         });
       }
