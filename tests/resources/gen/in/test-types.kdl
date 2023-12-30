@@ -1,0 +1,38 @@
+test-types {
+  flags {
+    "--file-path" "-f" "--path" {
+      type {
+        path
+      }
+      desc "File path"
+    }
+
+    "--bar" "-b" {
+      desc "Blah blah blah"
+      type {
+        path
+        run "ls -l"
+        strings "foo" "bar" "baz"
+      }
+    }
+  }
+
+  subcommands {
+    subcommand1 {
+      desc "The first and only subcommand"
+
+      flags {
+        "--no-args" {
+          desc "This has no args to complete (although the flag itself should be completed)"
+        }
+
+        "--unknown" {
+          type {
+            unknown
+          }
+          desc "This has an argument, but we don't know how to complete it"
+        }
+      }
+    }
+  }
+}

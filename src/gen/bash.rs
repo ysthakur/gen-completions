@@ -14,9 +14,11 @@ pub fn generate(cmd: &CommandInfo) -> (String, String) {
 
   out.writeln("return 0");
   out.dedent();
-  out.writeln("}\n");
+  out.writeln("}");
+  out.writeln("");
 
   out.writeln(format!("complete -F _comp_cmd_{} {}", cmd.name, cmd.name));
+  out.writeln("");
 
   (format!("_{}.bash", cmd.name), out.text())
 }

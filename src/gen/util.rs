@@ -35,20 +35,37 @@ impl Output {
     self.indent_level -= 1;
   }
 
+  fn write_indent(&mut self) {
+    for _ in 0..self.indent_level {
+      self.text.push_str(&self.indent_str);
+    }
+  }
+
   /// Write some text (without a newline)
   pub fn write<S: AsRef<str>>(&mut self, s: S) {
     if self.line_ended {
-      for _ in 0..self.indent_level {
-        self.text.push_str(&self.indent_str);
-      }
+      self.write_indent();
       self.line_ended = false;
     }
-    self.text.push_str(s.as_ref());
+
+    let mut lines = s.as_ref().split('\n');
+    if let Some(mut line) = lines.next() {
+      loop {
+        self.text.push_str(line);
+        if let Some(next) = lines.next() {
+          self.text.push('\n');
+          self.write_indent();
+          line = next;
+        } else {
+          break;
+        }
+      }
+    }
   }
 
   /// Write some text (with a newline)
   pub fn writeln<S: AsRef<str>>(&mut self, s: S) {
-    self.write(s);
+    self.write(s.as_ref());
     self.text.push('\n');
     self.line_ended = true;
   }

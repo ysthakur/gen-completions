@@ -168,6 +168,7 @@ pub fn parse_from(
     subcommands.sort_by(|a, b| a.name.cmp(&b.name));
     Some(CommandInfo {
       name: cmd_name.split(' ').last().unwrap().to_string(),
+      desc: None,
       flags,
       args,
       subcommands,

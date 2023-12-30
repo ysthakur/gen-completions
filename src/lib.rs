@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Eq, Serialize, PartialEq)]
 pub struct CommandInfo {
   pub name: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub desc: Option<String>,
   #[serde(skip_serializing_if = "Vec::is_empty")]
   pub flags: Vec<Flag>,
   /// The types of the arguments to this command
@@ -39,10 +41,13 @@ pub enum ArgType {
   Dir,
 
   /// Complete by running a command
-  Command(String),
+  Run(String),
 
   /// Only these strings are allowed
   Strings(Vec<String>),
+
+  /// Complete with the name of a command
+  CommandName,
 
   /// Any of the given types work
   Any(Vec<ArgType>),

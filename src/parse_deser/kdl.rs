@@ -98,6 +98,25 @@ pub enum ParseError {
   #[error("invalid type")]
   #[diagnostic(code(gen_completions::deser::kdl::invalid_type), url(docsrs))]
   InvalidType(String, #[label("unknown type {0}")] SourceSpan),
+
+  #[error("missing command")]
+  #[diagnostic(
+    code(gen_completions::deser::kdl::missing_command),
+    url(docsrs),
+    help(r#"Usage: `run "foo"`"#)
+  )]
+  MissingCommand(#[label("no command given to run")] SourceSpan),
+
+  #[error("{error}")]
+  #[diagnostic()]
+  Generic {
+    error: String,
+    #[label("{label}")]
+    span: SourceSpan,
+    label: String,
+    #[help]
+    help: Option<String>,
+  },
 }
 
 type ParseResult<T> = std::result::Result<T, ParseError>;
@@ -134,10 +153,11 @@ fn kdl_to_cmd_info(node: &KdlNode) -> ParseResult<CommandInfo> {
   let name = node.name().to_string();
   let mut flags = vec![];
   let mut args = vec![];
+  let mut desc = None;
   let mut subcommands = vec![];
 
   if let Some(doc) = node.children() {
-    let nodes = get_nodes(doc, &["flags", "args", "desc"])?;
+    let nodes = get_nodes(doc, &["flags", "args", "desc", "subcommands"])?;
 
     if let Some(flags_doc) = nodes.get("flags").and_then(|node| node.children())
     {
@@ -153,6 +173,18 @@ fn kdl_to_cmd_info(node: &KdlNode) -> ParseResult<CommandInfo> {
       }
     }
 
+    if let Some(desc_node) = nodes.get("desc") {
+      if desc_node.entries().is_empty() {
+        return Err(ParseError::Generic {
+          error: "Expected command description".to_owned(),
+          span: *desc_node.name().span(),
+          label: "No entry for node".to_owned(),
+          help: None,
+        });
+      }
+      desc = Some(strip_quotes(&desc_node.entries()[0].to_string()));
+    }
+
     if let Some(subcmds_doc) =
       nodes.get("subcommands").and_then(|node| node.children())
     {
@@ -164,6 +196,7 @@ fn kdl_to_cmd_info(node: &KdlNode) -> ParseResult<CommandInfo> {
 
   Ok(CommandInfo {
     name,
+    desc,
     flags,
     args,
     subcommands,
@@ -258,6 +291,43 @@ fn parse_type(node: &KdlNode) -> ParseResult<ArgType> {
   let typ = match node.name().to_string().as_str() {
     "path" => ArgType::Path,
     "dir" => ArgType::Dir,
+    "unknown" => ArgType::Unknown,
+    "command" => ArgType::CommandName,
+    "strings" => {
+      if let Some(children) = node.children() {
+        let help = if node.entries().is_empty() {
+          Some(r#"Write out the strings like 'strings "foo" "bar"' instead of 'strings {...}'"#.to_owned())
+        } else {
+          None
+        };
+        return Err(ParseError::Generic {
+          error: "'strings' type should have no child nodes".to_owned(),
+          span: *children.span(),
+          label: "this stuff shouldn't be here".to_owned(),
+          help,
+        });
+      }
+      ArgType::Strings(
+        node
+          .entries()
+          .iter()
+          .map(|entry| strip_quotes(&entry.to_string()))
+          .collect::<Vec<_>>(),
+      )
+    }
+    "run" => {
+      if node.entries().is_empty() {
+        return Err(ParseError::MissingCommand(*node.name().span()));
+      }
+      ArgType::Run(
+        node
+          .entries()
+          .iter()
+          .map(|entry| strip_quotes(&entry.to_string()))
+          .collect::<Vec<_>>()
+          .join(" "),
+      )
+    }
     // todo handle other variants
     typ => {
       return Err(ParseError::InvalidType(
@@ -307,8 +377,9 @@ fn strip_quotes(flag: &str) -> String {
   // todo check if strip_prefix/suffix is the right way to remove the quotes
   // might need to unescape characters within string
   flag
+    .trim()
     .strip_prefix('"')
-    .and_then(|s| s.strip_suffix('"'))
+    .map(|s| s.strip_suffix('"').unwrap())
     .unwrap_or(flag)
     .to_string()
 }
@@ -323,6 +394,7 @@ mod tests {
     assert_eq!(
       CommandInfo {
         name: "foo".to_string(),
+        desc: Some("foo bar baz".to_owned()),
         flags: vec![Flag {
           forms: vec!["--help".to_string(), "-h".to_string()],
           desc: Some("Show help output".to_string()),
@@ -344,6 +416,48 @@ mod tests {
           }
           args {
             dir
+          }
+          desc "foo bar baz"
+        }
+      "#
+      )?
+    );
+    Ok(())
+  }
+
+  #[test]
+  fn parse_types() -> miette::Result<()> {
+    assert_eq!(
+      CommandInfo {
+        name: "foo".to_string(),
+        desc: None,
+        flags: vec![Flag {
+          forms: vec!["--some-flag".to_owned()],
+          desc: None,
+          typ: Some(ArgType::Any(vec![
+            ArgType::Path,
+            ArgType::Dir,
+            ArgType::Strings(vec!["foo".to_owned(), "bar".to_owned()]),
+            ArgType::Run("ls -al".to_owned()),
+            ArgType::Unknown,
+          ])),
+        }],
+        args: vec![],
+        subcommands: vec![]
+      },
+      parse_from_str(
+        r#"
+        foo {
+          flags {
+            "--some-flag" {
+              type {
+                path
+                dir
+                strings "foo" "bar"
+                run "ls -al"
+                unknown
+              }
+            }
           }
         }
       "#

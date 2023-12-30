@@ -22,11 +22,7 @@ fn run_test(shell: &str, conf: &str, args: &[&str]) {
 
   // The gen-completions binary to test
   let mut cmd = Command::cargo_bin(BIN_NAME).unwrap();
-  let cmd = cmd
-    .arg("for")
-    .arg(shell)
-    .arg(in_dir.join(conf))
-    .args(args);
+  let cmd = cmd.arg("for").arg(shell).arg(in_dir.join(conf)).args(args);
   // So we can explicitly ask for logging
   if let Ok(log_level) = env::var("RUST_LOG") {
     cmd.env("RUST_LOG", log_level).stderr(Stdio::inherit());
@@ -48,7 +44,8 @@ fn run_test(shell: &str, conf: &str, args: &[&str]) {
   };
 
   let expected_path = expected_dir.join(&file_name);
-  let expected_out = fs::read(&expected_path).unwrap();
+  let expected_out =
+    fs::read(&expected_path).expect(&format!("{} should exist", &expected_path.display()));
   let expected_out = std::str::from_utf8(&expected_out).unwrap().trim();
 
   if got != expected_out {
@@ -64,8 +61,16 @@ fn run_test(shell: &str, conf: &str, args: &[&str]) {
 
     let saved = saved.display().to_string();
     println!("Test for {} failed.", cmd_name);
-    println!("To see the diff, run `diff {} {}`", &expected_path.display(), saved);
-    println!("To overwrite the expected file, run `cp {} {}`", saved, expected_path.display());
+    println!(
+      "To see the diff, run `diff {} {}`",
+      &expected_path.display(),
+      saved
+    );
+    println!(
+      "To overwrite the expected file, run `cp {} {}`",
+      saved,
+      expected_path.display()
+    );
 
     assert!(false);
   }
@@ -96,4 +101,19 @@ fn test1_kdl() {
 #[test]
 fn test1_json() {
   run_test("json", "test1.json", &[]);
+}
+
+#[test]
+fn types_bash() {
+  run_test("bash", "test-types.kdl", &[]);
+}
+
+#[test]
+fn types_zsh() {
+  run_test("zsh", "test-types.kdl", &[]);
+}
+
+#[test]
+fn types_nu() {
+  run_test("nu", "test-types.kdl", &[]);
 }

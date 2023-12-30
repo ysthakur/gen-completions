@@ -79,7 +79,7 @@ fn generate_fn(cmd: &CommandInfo, out: &mut Output, fn_name: &str) {
 
   if cmd.subcommands.is_empty() {
     out.dedent();
-    out.write("\n");
+    out.writeln("");
   } else {
     let sub_cmds = cmd
       .subcommands
