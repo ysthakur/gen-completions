@@ -1,3 +1,9 @@
+---
+source: tests/gen_integration_tests.rs
+description: Generated for shell zsh using config file test1.json
+expression: got
+input_file: tests/resources/gen/in/test1.json
+---
 #compdef test1
 
 function _test1 {

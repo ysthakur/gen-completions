@@ -35,5 +35,12 @@ serde_yaml = "0.9"
 
 [dev-dependencies]
 assert_cmd = "2.0"
+insta = "1"
 miette = { version = "5.10", features = ["fancy"] }
 tempfile = "3"
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3

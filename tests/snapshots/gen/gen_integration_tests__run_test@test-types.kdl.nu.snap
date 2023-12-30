@@ -1,3 +1,9 @@
+---
+source: tests/gen_integration_tests.rs
+description: Generated for shell nu using config file test-types.kdl
+expression: got
+input_file: tests/resources/gen/in/test-types.kdl
+---
 def "nu-complete test-types file_path" [] {
   []
 }
