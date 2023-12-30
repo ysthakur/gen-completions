@@ -1,3 +1,5 @@
+use regex::Regex;
+
 use crate::{
   gen::{util::Output, CommandInfo},
   ArgType,
@@ -11,6 +13,8 @@ pub fn generate(cmd: &CommandInfo) -> (String, String) {
 }
 
 fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
+  let valid_flag: Regex = Regex::new("[-A-Za-z]*").unwrap();
+
   // Instead of immediately writing the flags to the command, build up a list of
   // formatted flags here. If we need to, generate nu-complete commands to
   // complete flags first, then the actual export extern, so that the extern's
@@ -19,8 +23,18 @@ fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
   // Flags that will need a nu-complete function to complete them
   let mut complicated_flags = Vec::new();
   for flag in &cmd.flags {
+    // Filter out flags that Nu won't like
+    let forms = flag
+      .forms
+      .iter()
+      .filter(|form| {
+        (form.starts_with("--") || form.len() == 2)
+          && (valid_flag.is_match(form))
+      })
+      .map(|form| form.to_owned())
+      .collect::<Vec<_>>();
     let (short_forms, long_forms): (Vec<_>, Vec<_>) =
-      flag.forms.iter().partition(|f| f.len() == 2);
+      forms.iter().partition(|f| f.len() == 2);
 
     let desc_str = if let Some(desc) = &flag.desc {
       format!(" # {desc}")
@@ -33,12 +47,12 @@ fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
         ArgType::Unknown => ": string".to_owned(),
         _ => {
           // Turn it into a valid Nu identifier
-          let first_form = if flag.forms[0].starts_with("--") {
-            &flag.forms[0][2..]
-          } else if flag.forms[0].starts_with('-') {
-            &flag.forms[0][1..]
+          let first_form = if forms[0].starts_with("--") {
+            &forms[0][2..]
+          } else if forms[0].starts_with('-') {
+            &forms[0][1..]
           } else {
-            &flag.forms[0]
+            &forms[0]
           };
           // This may cause collisions if there are flags with underscores, but
           // that's unlikely
@@ -145,14 +159,5 @@ fn complete_type(typ: &ArgType) -> String {
         .join(" ")
     ),
     _ => "[]".to_owned(), // todo implement
-  }
-}
-
-/// Whether the completions for this type will include descriptions
-fn generates_descriptions(typ: ArgType) -> bool {
-  match typ {
-    ArgType::Strings(strs) => strs.iter().any(|(_, desc)| desc.is_some()),
-    ArgType::Run { sep: desc_sep, .. } => desc_sep.is_some(),
-    _ => false,
   }
 }

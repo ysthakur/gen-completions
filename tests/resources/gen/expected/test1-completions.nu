@@ -9,8 +9,8 @@ export extern "test1 sub1" [
 ]
 
 export extern "test1 sub1 nested" [
-  -co # Run a command or something
   --command # Run a command or something
+  --another-invalid-flag?! # Run a command or something
   --install # Install a thing
 ]
 

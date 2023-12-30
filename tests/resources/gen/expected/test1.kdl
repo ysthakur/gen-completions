@@ -17,7 +17,7 @@ test1 {
             subcommands {
                 nested {
                     flags {
-                        - "-co" "--command" {
+                        - "-co" "--command" "--another-invalid-flag?!" {
                             desc "Run a command or something"
                         }
                         - "--install" {

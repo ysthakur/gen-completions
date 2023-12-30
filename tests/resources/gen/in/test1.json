@@ -35,7 +35,8 @@
             {
               "forms": [
                 "-co",
-                "--command"
+                "--command",
+                "--another-invalid-flag?!"
               ],
               "desc": "Run a command or something"
             },

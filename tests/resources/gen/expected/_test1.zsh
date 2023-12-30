@@ -31,6 +31,7 @@ function _test1_sub1_nested {
 	_arguments \
 		'-co[Run a command or something]' \
 		'--command[Run a command or something]' \
+		'--another-invalid-flag?![Run a command or something]' \
 		'--install[Install a thing]'
 }
 
