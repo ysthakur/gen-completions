@@ -41,10 +41,16 @@ pub enum ArgType {
   Dir,
 
   /// Complete by running a command
-  Run(String),
+  Run {
+    /// The command to run
+    cmd: String,
+    /// The separator to split on to get the value (first) and description
+    /// (second). If none, assumed to only return values
+    sep: Option<String>,
+  },
 
-  /// Only these strings are allowed
-  Strings(Vec<String>),
+  /// Only these strings are allowed. The second part of each tuple is an optional description
+  Strings(Vec<(String, Option<String>)>),
 
   /// Complete with the name of a command
   CommandName,

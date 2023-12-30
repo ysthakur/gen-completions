@@ -103,17 +103,35 @@ fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
   }
 }
 
-/// Generate Nu code to provide completions for a particular type
+/// Generate Nu code to provide completions for a particular type.
+///
+/// Generates a list of records with a value field and possibly a description
+/// field
 fn complete_type(typ: &ArgType) -> String {
   match typ {
     ArgType::Unknown => complete_type(&ArgType::Path),
-    ArgType::Run(cmd) => format!("({})", cmd),
+    ArgType::Run { cmd, sep: desc_sep } => {
+      if let Some(sep) = desc_sep {
+        format!(
+          r#"(({}) | each {{ |it| $it | split row -n 2 '{}' | {{value: $in.0, description: $in.1}} }})"#,
+          cmd, sep
+        )
+      } else {
+        format!("(({}) | each {{ |it| {{value: $it}} }})", cmd)
+      }
+    }
     ArgType::Strings(strs) => {
       format!(
         "[{}]",
         strs
           .iter()
-          .map(|s| format!("'{}'", s))
+          .map(|(s, desc)| {
+            if let Some(desc) = desc {
+              format!("{{value: '{}', description: '{}'}}", s, desc)
+            } else {
+              format!("{{value: '{}'}}", s)
+            }
+          })
           .collect::<Vec<_>>()
           .join(", ")
       )
@@ -127,5 +145,14 @@ fn complete_type(typ: &ArgType) -> String {
         .join(" ")
     ),
     _ => "[]".to_owned(), // todo implement
+  }
+}
+
+/// Whether the completions for this type will include descriptions
+fn generates_descriptions(typ: ArgType) -> bool {
+  match typ {
+    ArgType::Strings(strs) => strs.iter().any(|(_, desc)| desc.is_some()),
+    ArgType::Run { sep: desc_sep, .. } => desc_sep.is_some(),
+    _ => false,
   }
 }

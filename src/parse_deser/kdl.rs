@@ -294,39 +294,51 @@ fn parse_type(node: &KdlNode) -> ParseResult<ArgType> {
     "unknown" => ArgType::Unknown,
     "command" => ArgType::CommandName,
     "strings" => {
-      if let Some(children) = node.children() {
-        let help = if node.entries().is_empty() {
-          Some(r#"Write out the strings like 'strings "foo" "bar"' instead of 'strings {...}'"#.to_owned())
-        } else {
-          None
-        };
+      if !node.entries().is_empty() {
         return Err(ParseError::Generic {
-          error: "'strings' type should have no child nodes".to_owned(),
-          span: *children.span(),
+          error: "'strings' type should have no entries".to_owned(),
+          span: *node.span(),
           label: "this stuff shouldn't be here".to_owned(),
-          help,
+          help: Some(r#"Write out the strings like 'strings {...}' instead of 'strings ...'"#.to_owned()),
         });
       }
-      ArgType::Strings(
-        node
-          .entries()
-          .iter()
-          .map(|entry| strip_quotes(&entry.to_string()))
-          .collect::<Vec<_>>(),
-      )
+
+      if let Some(children) = node.children() {
+        let mut strings = vec![];
+        for child in children.nodes() {
+          let value = strip_quotes(child.name().to_string());
+          let desc = if child.entries().is_empty() {
+            None
+          } else if child.entries().len() == 1 {
+            Some(strip_quotes(child.entries()[0].value().to_string()))
+          } else {
+            return Err(ParseError::Generic {
+              error: "Too many entries".to_owned(),
+              span: *child.span(),
+              label: "You just need one entry for the description".to_owned(),
+              help: None,
+            });
+          };
+          strings.push((value, desc));
+        }
+        ArgType::Strings(strings)
+      } else {
+        ArgType::Strings(vec![])
+      }
     }
     "run" => {
       if node.entries().is_empty() {
         return Err(ParseError::MissingCommand(*node.name().span()));
       }
-      ArgType::Run(
-        node
+      ArgType::Run {
+        cmd: node
           .entries()
           .iter()
           .map(|entry| strip_quotes(&entry.to_string()))
           .collect::<Vec<_>>()
           .join(" "),
-      )
+        sep: None,
+      }
     }
     // todo handle other variants
     typ => {
@@ -373,9 +385,10 @@ fn get_nodes<'a>(
 }
 
 /// KDL returns values with quotes around them, so remove those
-fn strip_quotes(flag: &str) -> String {
+fn strip_quotes(flag: impl AsRef<str>) -> String {
   // todo check if strip_prefix/suffix is the right way to remove the quotes
   // might need to unescape characters within string
+  let flag = flag.as_ref();
   flag
     .trim()
     .strip_prefix('"')
@@ -437,8 +450,14 @@ mod tests {
           typ: Some(ArgType::Any(vec![
             ArgType::Path,
             ArgType::Dir,
-            ArgType::Strings(vec!["foo".to_owned(), "bar".to_owned()]),
-            ArgType::Run("ls -al".to_owned()),
+            ArgType::Strings(vec![
+              ("foo".to_owned(), None),
+              ("bar".to_owned(), None)
+            ]),
+            ArgType::Run {
+              cmd: "ls -al".to_owned(),
+              sep: None
+            },
             ArgType::Unknown,
           ])),
         }],
@@ -453,7 +472,10 @@ mod tests {
               type {
                 path
                 dir
-                strings "foo" "bar"
+                strings {
+                  "foo"
+                  "bar"
+                }
                 run "ls -al"
                 unknown
               }

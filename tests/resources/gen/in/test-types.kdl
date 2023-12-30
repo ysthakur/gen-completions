@@ -12,7 +12,22 @@ test-types {
       type {
         path
         run "ls -l"
-        strings "foo" "bar" "baz"
+        strings {
+          "foo"
+          "bar"
+          "baz"
+        }
+      }
+    }
+
+    "-s" {
+      desc "testing out strings with descriptions"
+      type {
+        strings {
+          "asdf" "Foo bar baz"
+          "bleh" "Lorem ipsum dolor sit amet"
+          "another" "Some description"
+        }
       }
     }
   }
