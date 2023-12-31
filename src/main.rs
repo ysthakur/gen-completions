@@ -31,6 +31,10 @@ enum Commands {
 
     /// Directories to search for man pages in, e.g.
     /// `--dirs=/usr/share/man/man1,/usr/share/man/man6`
+    /// Note that `--dirs` will search directly inside the given directories,
+    /// not inside `<dir>/man1`, `<dir>/man2`, etc. If you want to search for
+    /// man pages in a specific set of directories, set `$MANPATH` before
+    /// running this command.
     #[arg(short, long, value_delimiter = ',', value_name = "PATH,...")]
     dirs: Option<Vec<PathBuf>>,
 

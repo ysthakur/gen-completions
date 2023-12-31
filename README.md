@@ -5,34 +5,18 @@
 [![Latest version](https://img.shields.io/crates/v/gen-completions.svg)](https://crates.io/crates/gen-completions)
 [![License](https://img.shields.io/crates/l/gen-completions.svg)](./LICENSE.md)
 
-This is a crate for parsing manpages to get completions for Zsh, Bash, Nushell,
-and, in the future, other shells.
+This is a crate for parsing manpages to generate shell completions either by parsing
+manpages or from KDL/JSON/YAML files. There's both a library and a binary, and if
+you're looking for documentation on the library, see https://docs.rs/gen-completions/.
+But you're probably here for the binary, and if you want information on that, read on.
 
-It also generates JSON files, in case your shell isn't supported, so you can process
-it and generate completions yourself.
+Currently, it generates Bash, Zsh, and Nushell completions, although I've only
+tested out Zsh and Nushell properly. It also generates KDL, JSON, or YAML files,
+in case your shell isn't supported, so you can process it and generate completions
+yourself.
 
-Currently, only a couple kinds of manpages are supported.
-
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Flags](#flags)
-  - [Zsh](#zsh)
-  - [Bash](#bash)
-  - [Nushell](#nushell)
-- [Contributing](#contributing)
-
-Ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py)
-
-For examples of the kinds of files this generates, look at the [`expected`](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
-
-For some example man pages, look at the [`samples`](/samples/) folder.
-
-Detects subcommands (very basic): If a manpage is named `git-commit-tree`, it will
-look for the text `git commit tree`, `git-commit tree`, and `git commit-tree` in
-the file. When it finds the text `git commit-tree` in the man page, it will
-assume that `commit-tree` is a subcommand of `git`. I'm not sure how the Fish
-script generates subcommands--I've been too lazy to do anything but skim over it--but
-I will eventually get around to porting Fish's subcommand detection.
+The manpage parsing has been mainly ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py),
+although this crate doesn't yet support every kind of manpage that the Fish script supports.
 
 ## Installation
 
@@ -50,36 +34,90 @@ I will eventually get around to porting Fish's subcommand detection.
 You can periodically run `gen-completions` to generate completions for any commands you want.
 
 For example, if you have a directory `~/generated-completions` for all your generated
-completions, and you want to generate Zsh completions for `ncdu`, you can use:
+completions, and you want to generate Zsh completions from the `ncdu` manpage, you can use:
 
 ```shell
-gen-completions -o ~/generated-completions -s zsh --cmds="ncdu" # For Bash, use -s bash
+gen-completions man zsh ~/generated-completions --cmds="ncdu"
 ```
 
-## Arguments
+If you have a config file to generate completions from, you can use:
 
-- Shells to generate completions for: `zsh`, `bash`, `nu`, or `json` (required)
-  - e.g. `zsh`
-- Directory to output files to (required)
-  - `e.g. ~/generated-completions`
-
-## Flags
-
-| Short form | Long form | Description |
-|-|-|-|
-| `-d` | `--dirs` | Directories to search in (comma-separated) |
-| `-c` | `--cmds` | Regex to search for only specific commands |
-| `-C` | `--exclude-cmds` | Regex to exclude certain commands |
-| `-n` | `--not-subcmds` | Commands that are not to be treated as subcommands (comma-separated) |
-| | `--subcmds` | Explicitly list subcommands that may not be detected, e.g. `foobar=foo bar,git-commit=git commit` |
-| `-h` | `--help` | Show help information |
-
-To search for man pages in a specific set of directories, set `$MANPATH` explicitly.
-You can also use `--dirs`, but note that `--dirs` will search directly inside the
-given directories, not inside `<dir>/man1`, `<dir>/man2`, etc.
+```shell
+gen-completions for zsh ncdu-completions.kdl ~/generated-completions
+```
 
 The CLI uses [`env_logger`](https://docs.rs/env_logger/) as the backend for logging,
 so to configure that, set the `RUST_LOG` environment variable (the link has instructions).
+
+See below for specific flags and whatnot.
+
+### Generating from manpages
+
+```
+Usage: gen-completions man [OPTIONS] <SHELL> <PATH>
+
+Arguments:
+  <SHELL>
+          Shell(s) to generate completions for
+
+          Possible values:
+          - zsh:  Generate completions for Zsh
+          - bash: Generate completions for Bash
+          - nu:   Generate completions for Nushell
+          - kdl:  Output parsed options as KDL
+          - json: Output parsed options as JSON
+          - yaml: Output parsed options as YAML
+
+  <PATH>
+          Directory to output completions to
+
+Options:
+  -d, --dirs <PATH,...>
+          Directories to search for man pages in, e.g. `--dirs=/usr/share/man/man1,/usr/share/man/man6`
+
+  -c, --cmds <REGEX>
+          Commands to generate completions for. If omitted, generates completions for all found commands. To match the whole name, use "^...$"
+
+  -C, --exclude-cmds <REGEX>
+          Commands to exclude (regex). To match the whole name, use "^...$"
+
+      --not-subcmds <COMMAND-NAME,...>
+          Commands that should not be treated as subcommands, to help deal with false positives when detecting subcommands
+
+      --subcmds <man-page=sub cmd,...>
+          Explicitly list which man pages are for which subcommands. e.g. `git-commit=git commit,foobar=foo bar`
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+
+### Generating from KDL/JSON/YAML
+
+```
+Usage: gen-completions for <SHELL> <CONF> [OUT]
+
+Arguments:
+  <SHELL>
+          Shell(s) to generate completions for
+
+          Possible values:
+          - zsh:  Generate completions for Zsh
+          - bash: Generate completions for Bash
+          - nu:   Generate completions for Nushell
+          - kdl:  Output parsed options as KDL
+          - json: Output parsed options as JSON
+          - yaml: Output parsed options as YAML
+
+  <CONF>
+          File to generate completions from
+
+  [OUT]
+          File to generate completions to. Outputted to stdout if not given
+
+Options:
+  -h, --help
+          Print help (see a summary with '-h')
+```
 
 ### Zsh
 
@@ -116,9 +154,23 @@ Any contributions are welcome.
 
 Here are some things that need work:
 
-- Port darwin and degroff parsers
+- Port Fish's darwin and degroff parsers
 - Find samples of type 4, Darwin, and Degroff to test
 - Add .gz and .bz2 files to the tests folder?
 - Test excluding/including commands and directories
 - Figure out why fish only seems to use man1, man6, and man8
 - Handle options like `-vv` and `-/` in Nushell
+
+### Details on how it works
+
+For examples of the kinds of files this generates, look at the
+[`expected`](./tests/resources/expected/) folder inside the [`tests`](./tests) folder.
+
+For some example man pages, look at the [`samples`](/samples/) folder.
+
+It has very basic subcommand detection. If a manpage is named `git-commit-tree`,
+it will look for the text `git commit tree`, `git-commit tree`, and `git commit-tree` in
+the file. When it finds the text `git commit-tree` in the man page, it will
+assume that `commit-tree` is a subcommand of `git`. I'm not sure how the Fish
+script generates subcommands--I've been too lazy to do anything but skim over it--but
+I will eventually get around to porting Fish's subcommand detection.

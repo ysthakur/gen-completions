@@ -1,3 +1,12 @@
+//! This is a library for generating completions either by parsing manpages or
+//! from KDL/JSON/YAML config files. If you're looking for the CLI tool, head to
+//! https://crates.io/crates/gen-completions
+//!
+//! The [`parse_man`] module parses manpages, while the [`parse_deser`] module
+//! deserializes a KDL/JSON/YAML file to get command information. Both produce
+//! [`CommandInfo`]s that can then be used to generate shell completions using
+//! the [`gen`] module.
+
 pub mod gen;
 pub mod parse_deser;
 pub mod parse_man;
@@ -49,7 +58,8 @@ pub enum ArgType {
     sep: Option<String>,
   },
 
-  /// Only these strings are allowed. The second part of each tuple is an optional description
+  /// Only these strings are allowed. The second part of each tuple is an
+  /// optional description
   Strings(Vec<(String, Option<String>)>),
 
   /// Complete with the name of a command
