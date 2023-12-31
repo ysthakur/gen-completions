@@ -3,9 +3,7 @@
 use log::debug;
 use regex::{Regex, RegexBuilder};
 
-use super::{error::ParseError, Flag};
-
-pub type ParseResult = std::result::Result<Vec<Flag>, ParseError>;
+use super::Flag;
 
 /// Match roff numeric expressions
 pub static NUM_RE: &str = r"(\d+(\.\d)?)";

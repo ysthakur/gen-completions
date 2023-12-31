@@ -18,7 +18,6 @@ use std::{
 use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;
 use log::{debug, trace};
-use miette::NamedSource;
 
 use crate::{parse_man::error::Error, CommandInfo, Flag};
 
@@ -62,35 +61,22 @@ pub fn parse_manpage_text(
 ) -> Result<Vec<Flag>> {
   let text = text.as_ref();
 
-  let mut all_flags = Vec::new();
-  let mut supported = false;
-  for flags in [
-    type1::try_parse(cmd_name, text),
-    type2::try_parse(cmd_name, text),
-    type3::try_parse(cmd_name, text),
-    type4::try_parse(cmd_name, text),
-    scdoc::try_parse(cmd_name, text),
-    podman::try_parse(cmd_name, text),
+  let flags = [
+    type1::parse(cmd_name, text),
+    type2::parse(cmd_name, text),
+    type3::parse(cmd_name, text),
+    type4::parse(cmd_name, text),
+    scdoc::parse(cmd_name, text),
+    podman::parse(cmd_name, text),
   ]
   .into_iter()
   .flatten()
-  {
-    match flags {
-      Ok(mut flags) => all_flags.append(&mut flags),
-      Err(e) => {
-        return Err(Error::ParseError {
-          source_code: NamedSource::new("", text.to_owned()),
-          source: e,
-        })
-      }
-    }
-    supported = true;
-  }
+  .collect::<Vec<_>>();
 
-  if supported {
-    Ok(all_flags)
-  } else {
+  if flags.is_empty() {
     Err(Error::UnsupportedFormat())
+  } else {
+    Ok(flags)
   }
 }
 
