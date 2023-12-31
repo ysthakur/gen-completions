@@ -182,7 +182,7 @@ fn kdl_to_cmd_info(node: &KdlNode) -> ParseResult<CommandInfo> {
           help: None,
         });
       }
-      desc = Some(strip_quotes(&desc_node.entries()[0].to_string()));
+      desc = Some(strip_quotes(desc_node.entries()[0].to_string()));
     }
 
     if let Some(subcmds_doc) =
@@ -214,17 +214,17 @@ fn parse_flag(
   let mut typ = None;
 
   // The name of the node itself will be the first flag
-  let first_flag = strip_quotes(&node.name().to_string());
+  let first_flag = strip_quotes(node.name().to_string());
   if let Some(prev_span) = flag_spans.get(&first_flag) {
     return Err(ParseError::DuplicateFlag {
       flag: first_flag,
       span: *node.name().span(),
       prev_span: *prev_span,
     });
-  } else {
-    forms.push(first_flag.clone());
-    flag_spans.insert(first_flag, *node.name().span());
   }
+
+  forms.push(first_flag.clone());
+  flag_spans.insert(first_flag, *node.name().span());
 
   // The other flags will be parsed as entries
   for flag_entry in node.entries() {
@@ -238,18 +238,18 @@ fn parse_flag(
         msg: flag_entry.to_string(),
         span: *flag_entry.span(),
       });
-    } else {
-      let flag = strip_quotes(&flag_entry.value().to_string());
-      if let Some(prev_span) = flag_spans.get(&flag) {
-        return Err(ParseError::DuplicateFlag {
-          flag,
-          span: *flag_entry.span(),
-          prev_span: *prev_span,
-        });
-      }
-      forms.push(flag.clone());
-      flag_spans.insert(flag, *node.name().span());
     }
+
+    let flag = strip_quotes(flag_entry.value().to_string());
+    if let Some(prev_span) = flag_spans.get(&flag) {
+      return Err(ParseError::DuplicateFlag {
+        flag,
+        span: *flag_entry.span(),
+        prev_span: *prev_span,
+      });
+    }
+    forms.push(flag.clone());
+    flag_spans.insert(flag, *node.name().span());
   }
 
   if let Some(doc) = node.children() {
@@ -258,7 +258,7 @@ fn parse_flag(
     if let Some(desc_node) = nodes.get("desc") {
       if desc_node.entries().len() == 1 {
         // todo account for invalid entry with name
-        desc = Some(strip_quotes(&desc_node.entries()[0].value().to_string()));
+        desc = Some(strip_quotes(desc_node.entries()[0].value().to_string()));
       } else {
         todo!()
       }
@@ -299,7 +299,7 @@ fn parse_type(node: &KdlNode) -> ParseResult<ArgType> {
           error: "'strings' type should have no entries".to_owned(),
           span: *node.span(),
           label: "this stuff shouldn't be here".to_owned(),
-          help: Some(r#"Write out the strings like 'strings {...}' instead of 'strings ...'"#.to_owned()),
+          help: Some("Write out the strings like 'strings {...}' instead of 'strings ...'".to_owned()),
         });
       }
 
@@ -334,7 +334,7 @@ fn parse_type(node: &KdlNode) -> ParseResult<ArgType> {
         cmd: node
           .entries()
           .iter()
-          .map(|entry| strip_quotes(&entry.to_string()))
+          .map(|entry| strip_quotes(entry.to_string()))
           .collect::<Vec<_>>()
           .join(" "),
         sep: None,
@@ -392,8 +392,7 @@ fn strip_quotes(flag: impl AsRef<str>) -> String {
   flag
     .trim()
     .strip_prefix('"')
-    .map(|s| s.strip_suffix('"').unwrap())
-    .unwrap_or(flag)
+    .map_or(flag, |s| s.strip_suffix('"').unwrap())
     .to_string()
 }
 

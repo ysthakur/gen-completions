@@ -1,6 +1,6 @@
 //! This is a library for generating completions either by parsing manpages or
 //! from KDL/JSON/YAML config files. If you're looking for the CLI tool, head to
-//! https://crates.io/crates/gen-completions
+//! <https://crates.io/crates/gen-completions>
 //!
 //! The [`parse_man`] module parses manpages, while the [`parse_deser`] module
 //! deserializes a KDL/JSON/YAML file to get command information. Both produce

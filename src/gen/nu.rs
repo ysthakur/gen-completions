@@ -43,25 +43,24 @@ fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
     };
 
     let type_str = if let Some(typ) = flag.typ.as_ref() {
-      match typ {
-        ArgType::Unknown => ": string".to_owned(),
-        _ => {
-          // Turn it into a valid Nu identifier
-          let first_form = if forms[0].starts_with("--") {
-            &forms[0][2..]
-          } else if forms[0].starts_with('-') {
-            &forms[0][1..]
-          } else {
-            &forms[0]
-          };
-          // This may cause collisions if there are flags with underscores, but
-          // that's unlikely
-          let first_form = first_form.replace("-", "_");
-          let res =
-            format!(r#": string@"nu-complete {} {}""#, cmd_name, &first_form);
-          complicated_flags.push((first_form, typ));
-          res
-        }
+      if typ == &ArgType::Unknown {
+        ": string".to_owned()
+      } else {
+        // Turn it into a valid Nu identifier
+        let first_form = if forms[0].starts_with("--") {
+          &forms[0][2..]
+        } else if forms[0].starts_with('-') {
+          &forms[0][1..]
+        } else {
+          &forms[0]
+        };
+        // This may cause collisions if there are flags with underscores, but
+        // that's unlikely
+        let first_form = first_form.replace('-', "_");
+        let res =
+          format!(r#": string@"nu-complete {} {}""#, cmd_name, &first_form);
+        complicated_flags.push((first_form, typ));
+        res
       }
     } else {
       String::new()
@@ -82,7 +81,7 @@ fn generate_cmd(cmd_name: &str, cmd: &CommandInfo, out: &mut Output) {
       ));
     }
 
-    for form in long_forms.into_iter().chain(short_forms) {
+    for form in long_forms.chain(short_forms) {
       flags_strs.push(format!("{form}{type_str}{desc_str}"));
     }
   }
