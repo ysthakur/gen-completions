@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.2](https://github.com/ysthakur/gen-completions/compare/v0.5.1...v0.5.2) (2023-12-31)
+
+
+### Features
+
+* Generate descriptions for strings arg type for nu ([c70d189](https://github.com/ysthakur/gen-completions/commit/c70d1891ecfe9e51895e016298c77d624bc20114))
+* Make Nushell try generating types ([898537b](https://github.com/ysthakur/gen-completions/commit/898537bbc267007e2efb47848eea18140ad7e9e8))
+* Parse arg types ([0417e65](https://github.com/ysthakur/gen-completions/commit/0417e65cf76200ab891a4fc19ea99f8771475cd0))
+
+
+### Bug Fixes
+
+* Fix duplicate flag span ([e486366](https://github.com/ysthakur/gen-completions/commit/e4863660baecb998d2f046f4552ad6b0a4834d32))
+
 ## [0.5.1](https://github.com/ysthakur/man-completions/compare/v0.5.0...v0.5.1) (2023-12-25)
 
 
