@@ -1,4 +1,5 @@
 mod bash;
+mod carapace;
 mod kdl;
 mod nu;
 mod util;
@@ -29,8 +30,8 @@ pub enum OutputFormat {
   Kdl,
   /// Output parsed options as JSON
   Json,
-  /// Output parsed options as YAML
-  Yaml,
+  /// Output Carapace spec
+  Carapace,
 }
 
 /// Generate completion for the given shell and write to a file
@@ -67,12 +68,12 @@ fn generate(cmd: &CommandInfo, format: OutputFormat) -> (String, String) {
     }
     OutputFormat::Json => (
       format!("{}.json", cmd.name),
-      serde_json::to_string(&cmd).unwrap(),
+      serde_json::to_string(&cmd)
+        .expect("Command info should've been serialized to JSON"),
     ),
-    OutputFormat::Yaml => (
-      format!("{}.yaml", cmd.name),
-      serde_yaml::to_string(&cmd).unwrap(),
-    ),
+    OutputFormat::Carapace => {
+      (format!("{}.yaml", cmd.name), carapace::generate(&cmd))
+    }
   }
 }
 

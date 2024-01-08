@@ -1,4 +1,4 @@
-//! For parsing completions from a serialization language (KDL, JSON, or YAML)
+//! For parsing completions from a serialization language (KDL or JSON)
 
 pub mod error;
 mod kdl;
@@ -16,12 +16,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum InputFormat {
   Kdl,
   Json,
-  Yaml,
 }
 
 /// # Errors
 ///
-/// Fails if the file's extension isn't recognized (only KDL, JSON, and YAML are
+/// Fails if the file's extension isn't recognized (only KDL and JSON are
 /// supported), or if [`parse_from_str`] fails.
 pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
   let file = file.as_ref();
@@ -32,7 +31,6 @@ pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
         if let Some(ext) = ext.to_str() {
           let format = match ext {
             "json" => InputFormat::Json,
-            "yaml" | "yml" => InputFormat::Yaml,
             "kdl" => InputFormat::Kdl,
             _ => return Err(Error::UnrecognizableExtension { file_path }),
           };
@@ -56,14 +54,13 @@ pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
 
 /// # Errors
 ///
-/// Fails if the shape of the KDL/JSON/YAML didn't match a [`CommandInfo`]
+/// Fails if the shape of the KDL/JSON didn't match a [`CommandInfo`]
 pub fn parse_from_str(
   text: &str,
   format: InputFormat,
 ) -> std::result::Result<CommandInfo, DeserError> {
   let cmd_info = match format {
     InputFormat::Json => serde_json::from_str(text)?,
-    InputFormat::Yaml => serde_yaml::from_str(text)?,
     InputFormat::Kdl => kdl::parse_from_str(text)?,
   };
   Ok(cmd_info)

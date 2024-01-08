@@ -1,7 +1,37 @@
 /// Wrap in single quotes (and escape single quotes inside) so that it's safe
 /// for Bash and Zsh to read
-pub fn quote_bash<S: AsRef<str>>(s: S) -> String {
+pub fn quote_bash(s: impl AsRef<str>) -> String {
   format!("'{}'", s.as_ref().replace('\'', r#"'"'"'"#))
+}
+
+/// Remove the beginning dashes from a flag, but only the first two
+pub fn trim_dashes(s: impl AsRef<str>) -> String {
+  let s = s.as_ref();
+  s.strip_prefix("--")
+    .or(s.strip_prefix('-'))
+    .unwrap_or(s)
+    .to_owned()
+}
+
+pub fn pair_forms<T: AsRef<str>>(forms: &[T]) -> Vec<(Option<&T>, Option<&T>)> {
+  let (short_forms, long_forms): (Vec<_>, Vec<_>) =
+    forms.iter().partition(|f| f.as_ref().len() == 2);
+
+  let short_shorter = short_forms.len() < long_forms.len();
+
+  let short_iter = short_forms.into_iter().map(Some);
+  let long_iter = long_forms.into_iter().map(Some);
+
+  if short_shorter {
+    short_iter
+      .chain(std::iter::repeat(None))
+      .zip(long_iter)
+      .collect()
+  } else {
+    short_iter
+      .zip(long_iter.chain(std::iter::repeat(None)))
+      .collect()
+  }
 }
 
 /// Helper to write indented text to a string

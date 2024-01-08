@@ -17,10 +17,11 @@ strip = "debuginfo"
 [dependencies]
 clap = { version = "4.3", features = ["derive", "env"] }
 env_logger = "0.10"
-thiserror = "1.0"
+indoc = "2"
 log = "0.4"
 miette = "5.10"
 regex = "1.9"
+thiserror = "1.0"
 
 # For parsing manpages
 bzip2 = "0.4"
@@ -37,6 +38,7 @@ serde_yaml = "0.9"
 assert_cmd = "2.0"
 insta = "1"
 miette = { version = "5.10", features = ["fancy"] }
+pretty_assertions = "1"
 tempfile = "3"
 
 [profile.dev.package.insta]

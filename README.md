@@ -5,15 +5,19 @@
 [![Latest version](https://img.shields.io/crates/v/gen-completions.svg)](https://crates.io/crates/gen-completions)
 [![License](https://img.shields.io/crates/l/gen-completions.svg)](./LICENSE.md)
 
+> [!warning]
+> This project is a work in progress so it's extremely unstable and mostly broken.
+
 This is a crate for parsing manpages to generate shell completions either by parsing
-manpages or from KDL/JSON/YAML files. There's both a library and a binary, and if
+manpages or from KDL/JSON files. There's both a library and a binary, and if
 you're looking for documentation on the library, see https://docs.rs/gen-completions/.
 But you're probably here for the binary, and if you want information on that, read on.
 
 Currently, it generates Bash, Zsh, and Nushell completions, although I've only
-tested out Zsh and Nushell properly. It also generates KDL, JSON, or YAML files,
-in case your shell isn't supported, so you can process it and generate completions
-yourself.
+tested out Zsh and Nushell properly. If you're using another shell, it also generates
+[Carapace](https://github.com/rsteube/carapace-bin) specs. In addition to that,
+it generates KDL and JSON files so you can process the command information
+to generate completions yourself or something else.
 
 The manpage parsing has been mainly ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py),
 although this crate doesn't yet support every kind of manpage that the Fish script supports.
@@ -61,19 +65,19 @@ Arguments:
           Shell(s) to generate completions for
 
           Possible values:
-          - zsh:  Generate completions for Zsh
-          - bash: Generate completions for Bash
-          - nu:   Generate completions for Nushell
-          - kdl:  Output parsed options as KDL
-          - json: Output parsed options as JSON
-          - yaml: Output parsed options as YAML
+          - zsh:      Generate completions for Zsh
+          - bash:     Generate completions for Bash
+          - nu:       Generate completions for Nushell
+          - kdl:      Output parsed options as KDL
+          - json:     Output parsed options as JSON
+          - carapace: Output Carapace spec
 
   <PATH>
           Directory to output completions to
 
 Options:
   -d, --dirs <PATH,...>
-          Directories to search for man pages in, e.g. `--dirs=/usr/share/man/man1,/usr/share/man/man6`
+          Directories to search for man pages in, e.g. `--dirs=/usr/share/man/man1,/usr/share/man/man6` Note that `--dirs` will search directly inside the given directories, not inside `<dir>/man1`, `<dir>/man2`, etc. If you want to search for man pages in a specific set of directories, set `$MANPATH` before running this command
 
   -c, --cmds <REGEX>
           Commands to generate completions for. If omitted, generates completions for all found commands. To match the whole name, use "^...$"
@@ -101,12 +105,12 @@ Arguments:
           Shell(s) to generate completions for
 
           Possible values:
-          - zsh:  Generate completions for Zsh
-          - bash: Generate completions for Bash
-          - nu:   Generate completions for Nushell
-          - kdl:  Output parsed options as KDL
-          - json: Output parsed options as JSON
-          - yaml: Output parsed options as YAML
+          - zsh:      Generate completions for Zsh
+          - bash:     Generate completions for Bash
+          - nu:       Generate completions for Nushell
+          - kdl:      Output parsed options as KDL
+          - json:     Output parsed options as JSON
+          - carapace: Output Carapace spec
 
   <CONF>
           File to generate completions from

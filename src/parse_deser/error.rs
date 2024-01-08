@@ -41,10 +41,6 @@ pub enum DeserError {
   Json(#[from] serde_json::Error),
 
   #[error(transparent)]
-  #[diagnostic()]
-  Yaml(#[from] serde_yaml::Error),
-
-  #[error(transparent)]
   #[diagnostic(transparent)]
   Kdl(#[from] KdlDeserError),
 }
