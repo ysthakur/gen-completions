@@ -1,6 +1,6 @@
 [package]
 name = "gen-completions"
-version = "0.5.1"
+version = "0.6.0"
 description = "Generate Bash/Zsh completions from manpages or JSON/KDL files"
 keywords = ["shell"]
 categories = ["command-line-utilities"]
