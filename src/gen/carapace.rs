@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use serde::Serialize;
 
@@ -14,8 +14,8 @@ struct CarapaceCmd {
   name: String,
   #[serde(skip_serializing_if = "Option::is_none")]
   description: Option<String>,
-  #[serde(skip_serializing_if = "HashMap::is_empty")]
-  flags: HashMap<String, String>,
+  #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+  flags: BTreeMap<String, String>,
   #[serde(skip_serializing_if = "Completion::is_empty")]
   completion: Completion,
   #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -26,8 +26,8 @@ struct CarapaceCmd {
 struct Completion {
   #[serde(skip_serializing_if = "Vec::is_empty")]
   positional: Vec<Vec<String>>,
-  #[serde(skip_serializing_if = "HashMap::is_empty")]
-  flag: HashMap<String, Vec<String>>,
+  #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+  flag: BTreeMap<String, Vec<String>>,
 }
 
 impl Completion {
@@ -45,8 +45,10 @@ pub fn generate(cmd: &CommandInfo) -> String {
 
 /// Generate a [`CommandInfo`] to a carapace spec so it can be serialized
 fn to_carapace(cmd: &CommandInfo) -> CarapaceCmd {
-  let mut flags = HashMap::new();
-  let mut flag_completions = HashMap::new();
+  // BTreeMap used rather than HashMap so that output always has predictable
+  // order, otherwise tests can fail sometimes
+  let mut flags = BTreeMap::new();
+  let mut flag_completions = BTreeMap::new();
 
   for flag in &cmd.flags {
     let desc = flag.desc.clone().unwrap_or_default();
@@ -149,16 +151,16 @@ mod tests {
           blah blah
           Newline
         flags:
-          -b,--bar=: This flag does nothing
           --why=: This flag does nothing
+          -b,--bar=: This flag does nothing
         completion:
           positional:
           - - $files
           flag:
-            why:
+            bar:
             - "baz1\tDescription for baz1"
             - "baz2\tAnother description"
-            bar:
+            why:
             - "baz1\tDescription for baz1"
             - "baz2\tAnother description"
       "#,
