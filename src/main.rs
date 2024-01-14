@@ -65,7 +65,7 @@ enum Commands {
     /// File to generate completions from
     conf: PathBuf,
 
-    /// File to generate completions to. Outputted to stdout if not given.
+    /// Folder to generate completions to. Outputted to stdout if not given.
     out: Option<PathBuf>,
   },
 }

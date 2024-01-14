@@ -10,19 +10,18 @@ pub fn to_kdl_node(cmd: &CommandInfo) -> KdlNode {
   let mut flag_nodes = KdlDocument::new();
 
   for flag in &cmd.flags {
-    let mut flag_node = KdlNode::new("-");
+    let mut form_iter = flag.forms.iter();
+    let mut flag_node = KdlNode::new(form_iter.next().unwrap().as_str());
 
-    for form in &flag.forms {
-      flag_node
-        .entries_mut()
-        .push(KdlEntry::new(form.to_string()));
+    for form in form_iter {
+      flag_node.entries_mut().push(KdlEntry::new(form.as_str()));
     }
 
     if let Some(desc) = &flag.desc {
       let mut description_node = KdlNode::new("desc");
       description_node
         .entries_mut()
-        .push(KdlEntry::new(desc.to_string()));
+        .push(KdlEntry::new(desc.as_str()));
 
       let mut flag_children = KdlDocument::new();
       flag_children.nodes_mut().push(description_node);
