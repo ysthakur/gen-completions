@@ -1,4 +1,4 @@
-//! Test generating completions from JSON files
+//! Test generating completions from KDL/JSON files
 
 use std::{
   env,

@@ -2,31 +2,31 @@
 source: tests/gen_integration_tests.rs
 description: Generated for shell kdl using config file test1.json
 expression: got
-input_file: tests/resources/gen/in/test1.json
+input_file: tests/resources/gen/test1.json
 ---
 test1 {
     flags {
-        - "-h" "--h" {
+        -h "--h" {
             desc "Show help information"
         }
-        - "-v" "--verbose" "--loud" {
+        -v "--verbose" "--loud" {
             desc "Verbose output"
         }
     }
     subcommands {
         sub1 {
             flags {
-                - "--foobar" {
+                --foobar {
                     desc "Something something [brackets]"
                 }
             }
             subcommands {
                 nested {
                     flags {
-                        - "-co" "--command" "--another-invalid-flag?!" {
+                        -co "--command" "--another-invalid-flag?!" {
                             desc "Run a command or something"
                         }
-                        - "--install" {
+                        --install {
                             desc "Install a thing"
                         }
                     }
@@ -35,10 +35,10 @@ test1 {
         }
         sub2 {
             flags {
-                - "--a" "--all" {
+                --a "--all" {
                     desc "Both options should be picked up even though the short one is weird"
                 }
-                - "-C" "--backupdir" {
+                -C "--backupdir" {
                     desc "The short form should be picked up as -C, not -Cdirectory (example from nano)"
                 }
             }
