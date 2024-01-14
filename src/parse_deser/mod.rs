@@ -36,7 +36,7 @@ pub fn parse(file: impl AsRef<Path>) -> Result<CommandInfo> {
           };
           parse_from_str(&text, format).map_err(|error| Error::Deser {
             source_code: NamedSource::new(file_path, text),
-            error,
+            error: Box::new(error),
           })
         } else {
           Err(Error::UnrecognizableExtension { file_path })

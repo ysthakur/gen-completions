@@ -38,7 +38,7 @@ impl Completion {
 
 /// Generate a Carapace spec from a [`CommandInfo`]
 pub fn generate(cmd: &CommandInfo) -> String {
-  let yaml = serde_yaml::to_string(&to_carapace(&cmd))
+  let yaml = serde_yaml::to_string(&to_carapace(cmd))
     .expect("Carapace spec should've been serialized to YAML");
   format!("{}\n{}", HEADER, yaml)
 }

@@ -29,7 +29,7 @@ pub enum Error {
     #[source_code]
     source_code: NamedSource,
     #[source]
-    error: DeserError,
+    error: Box<DeserError>,
   },
 }
 
