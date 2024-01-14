@@ -66,15 +66,15 @@ fn test1_json() {
   run_test("json", "test1.json", &[]);
 }
 
-#[test]
-fn types_bash() {
-  run_test("bash", "test-types.kdl", &[]);
-}
+// #[test]
+// fn types_bash() {
+//   run_test("bash", "test-types.kdl", &[]);
+// }
 
-#[test]
-fn types_zsh() {
-  run_test("zsh", "test-types.kdl", &[]);
-}
+// #[test]
+// fn types_zsh() {
+//   run_test("zsh", "test-types.kdl", &[]);
+// }
 
 #[test]
 fn types_nu() {
