@@ -154,16 +154,7 @@ TODO
 
 ## Contributing
 
-Any contributions are welcome.
-
-Here are some things that need work:
-
-- Port Fish's darwin and degroff parsers
-- Find samples of type 4, Darwin, and Degroff to test
-- Add .gz and .bz2 files to the tests folder?
-- Test excluding/including commands and directories
-- Figure out why fish only seems to use man1, man6, and man8
-- Handle options like `-vv` and `-/` in Nushell
+Any and all contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on what needs to be worked on.
 
 ### Details on how it works
 
