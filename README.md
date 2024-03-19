@@ -20,7 +20,7 @@ it generates KDL and JSON files so you can process the command information
 to generate completions yourself or something else.
 
 The manpage parsing has been mainly ported from [Fish's completions script](https://github.com/fish-shell/fish-shell/blob/master/share/tools/create_manpage_completions.py),
-although this crate doesn't yet support every kind of manpage that the Fish script supports.
+although this crate doesn't yet support every kind of manpage that the Fish script supports. In particular, MacOS man pages cannot yet be parsed. Any help with that would be greatly appreciated.
 
 ## Installation
 
