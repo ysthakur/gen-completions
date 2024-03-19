@@ -138,3 +138,8 @@ fn scdoc_sway_json() {
 fn podman_ncdu_json() {
   run_test("json", &["ncdu"], &["--cmds", "^ncdu"]);
 }
+
+#[test]
+fn darwin_bless_json() {
+  run_test("json", &["bless"], &["--cmds", "^bless"]);
+}
