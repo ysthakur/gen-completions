@@ -54,7 +54,7 @@ pub fn remove_groff_formatting(data: &str) -> String {
     // .replace(".I", "") // This breaks podman since it removes .IX
     .replace('\u{C}', "");
 
-  let quotes = Regex::new(r"\([ocadlr]q").unwrap();
+  let quotes = Regex::new(r"\\\([ocadlr]q").unwrap();
   let data = quotes.replace_all(&data, "'");
 
   let data = data.replace(".Pp", ""); // Fish only replaces this one on MacOS
