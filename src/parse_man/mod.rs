@@ -51,19 +51,11 @@ pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
 
 /// Parse flags from a man page, trying all of the different parsers and merging
 /// their results if multiple parsers could parse the man page.
-///
-/// # Errors
-///
-/// Fails if none of the manpage parsers could understand the text, or if one of
-/// them encountered an error.
-pub fn parse_manpage_text(
-  path: PathBuf,
-  cmd_name: &str,
-  text: impl AsRef<str>,
-) -> Result<Vec<Flag>> {
+pub fn parse_manpage_text(cmd_name: &str, text: impl AsRef<str>) -> Vec<Flag> {
   let text = text.as_ref();
 
-  let flags = [
+  // TODO remove duplicate flags
+  [
     type1::parse(cmd_name, text),
     type2::parse(cmd_name, text),
     type3::parse(cmd_name, text),
@@ -74,13 +66,7 @@ pub fn parse_manpage_text(
   ]
   .into_iter()
   .flatten()
-  .collect::<Vec<_>>();
-
-  if flags.is_empty() {
-    Err(Error::UnsupportedFormat { path })
-  } else {
-    Ok(flags)
-  }
+  .collect::<Vec<_>>()
 }
 
 /// Decompress a manpage if necessary
@@ -127,10 +113,13 @@ pub fn parse_from(
   let flags = if let Some(path) = pre_info.path {
     match read_manpage(path.clone()) {
       Ok(text) => {
-        parse_manpage_text(path, cmd_name, text).unwrap_or_else(|e| {
-          errors.push(e);
+        let all_flags = parse_manpage_text(cmd_name, text);
+        if all_flags.is_empty() {
+          errors.push(Error::UnsupportedFormat { path });
           Vec::new()
-        })
+        } else {
+          all_flags
+        }
       }
       Err(e) => {
         errors.push(e.into());
