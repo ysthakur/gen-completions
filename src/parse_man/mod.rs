@@ -1,4 +1,5 @@
 //! For parsing command information from man pages
+mod darwin;
 pub mod error;
 mod podman;
 mod scdoc;
@@ -68,6 +69,7 @@ pub fn parse_manpage_text(
     type4::parse(cmd_name, text),
     scdoc::parse(cmd_name, text),
     podman::parse(cmd_name, text),
+    darwin::parse(cmd_name, text),
   ]
   .into_iter()
   .flatten()

@@ -16,8 +16,7 @@ pub fn trim_desc(desc: &str) -> String {
 
 /// Get the contents of a section with the given title
 pub fn get_section(title: &str, text: &str) -> Option<String> {
-  // [hH] is necessary for Darwin
-  let re = RegexBuilder::new(&format!(r#"\.S[hH] {title}(.*?)(\.S[hH]|\z)"#))
+  let re = RegexBuilder::new(&format!(r#"\.SH {title}(.*?)(\.SH|\z)"#))
     .multi_line(true)
     .dot_matches_new_line(true)
     .build()
@@ -35,14 +34,15 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\fB", "")
     .replace(r"\fR", "")
     .replace(r"\e", "");
+
   // TODO check if this one is necessary
-  // also, fish uses a slightly different regex: `.PD( \d+)`, check if that's
-  // fine
   let re = Regex::new(r"\.PD \d+").unwrap();
   let data = re.replace_all(&data, "");
+
   let data = data
     .replace(".BI", "")
     .replace(".BR", "")
+    .replace(".B", "")
     .replace("0.5i", "")
     .replace(".rb", "")
     .replace(r"\^", "")
@@ -51,12 +51,13 @@ pub fn remove_groff_formatting(data: &str) -> String {
     .replace(r"\ ", " ")
     .replace(r"\-", "-")
     .replace(r"\&", "")
-    .replace(".B", "")
-    .replace(r"\-", "-")
     // .replace(".I", "") // This breaks podman since it removes .IX
-    .replace('\u{C}', "")
-    .replace(r"\(cq", "'")
-    .replace(r"\(aq", "'"); // Added by me, not from Fish. May need to remove all \(xx
+    .replace('\u{C}', "");
+
+  let quotes = Regex::new(r"\([ocadlr]q").unwrap();
+  let data = quotes.replace_all(&data, "'");
+
+  let data = data.replace(".Pp", ""); // Fish only replaces this one on MacOS
 
   // todo Fish doesn't do this, see how it handles .sp
   let re = Regex::new(&format!(r"\.sp( {NUM_RE}v?)?")).unwrap();
