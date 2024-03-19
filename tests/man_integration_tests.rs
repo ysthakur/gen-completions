@@ -140,6 +140,6 @@ fn podman_ncdu_json() {
 }
 
 #[test]
-fn darwin_bless() {
+fn darwin_bless_json() {
   run_test("json", &["bless"], &["--cmds", "^bless"]);
 }
