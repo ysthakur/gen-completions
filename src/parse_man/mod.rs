@@ -57,6 +57,7 @@ pub fn get_cmd_name(manpage_path: impl AsRef<Path>) -> String {
 /// Fails if none of the manpage parsers could understand the text, or if one of
 /// them encountered an error.
 pub fn parse_manpage_text(
+  path: PathBuf,
   cmd_name: &str,
   text: impl AsRef<str>,
 ) -> Result<Vec<Flag>> {
@@ -76,7 +77,7 @@ pub fn parse_manpage_text(
   .collect::<Vec<_>>();
 
   if flags.is_empty() {
-    Err(Error::UnsupportedFormat())
+    Err(Error::UnsupportedFormat { path })
   } else {
     Ok(flags)
   }
@@ -124,11 +125,13 @@ pub fn parse_from(
   let mut errors = Vec::new();
 
   let flags = if let Some(path) = pre_info.path {
-    match read_manpage(path) {
-      Ok(text) => parse_manpage_text(cmd_name, text).unwrap_or_else(|e| {
-        errors.push(e);
-        Vec::new()
-      }),
+    match read_manpage(path.clone()) {
+      Ok(text) => {
+        parse_manpage_text(path, cmd_name, text).unwrap_or_else(|e| {
+          errors.push(e);
+          Vec::new()
+        })
+      }
       Err(e) => {
         errors.push(e.into());
         Vec::new()
