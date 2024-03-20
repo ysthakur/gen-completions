@@ -131,7 +131,7 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
         .dot_matches_new_line(true)
         .build()
         .expect("Regex should be valid");
-      let desc = desc_end.replace(&desc, "");
+      let desc = desc_end.replace(desc, "");
 
       let desc = desc.trim().replace('\n', " ");
       let desc = desc.trim_end_matches('.');
