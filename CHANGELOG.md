@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0](https://github.com/ysthakur/gen-completions/compare/v0.5.1...v0.6.0) (2024-03-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* generate carapace but remove yaml support
+
+### Features
+
+* Basic support for Darwin ([#17](https://github.com/ysthakur/gen-completions/issues/17)) ([4a849ca](https://github.com/ysthakur/gen-completions/commit/4a849ca88040547984a6386b0f35622e535759ef))
+* generate carapace but remove yaml support ([c429a78](https://github.com/ysthakur/gen-completions/commit/c429a784ab742cd97ee060802fd5edc857b1f17b))
+* Generate descriptions for strings arg type for nu ([c70d189](https://github.com/ysthakur/gen-completions/commit/c70d1891ecfe9e51895e016298c77d624bc20114))
+* Make Nushell try generating types ([898537b](https://github.com/ysthakur/gen-completions/commit/898537bbc267007e2efb47848eea18140ad7e9e8))
+* Parse arg types ([0417e65](https://github.com/ysthakur/gen-completions/commit/0417e65cf76200ab891a4fc19ea99f8771475cd0))
+
+
+### Bug Fixes
+
+* Don't include subsection headings at end ([590e695](https://github.com/ysthakur/gen-completions/commit/590e695090a6aae07adb4cbffce322aeff310dfb))
+* Fix duplicate flag span ([e486366](https://github.com/ysthakur/gen-completions/commit/e4863660baecb998d2f046f4552ad6b0a4834d32))
+
 ## [0.5.1](https://github.com/ysthakur/man-completions/compare/v0.5.0...v0.5.1) (2023-12-25)
 
 
