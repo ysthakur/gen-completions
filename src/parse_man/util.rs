@@ -126,12 +126,20 @@ pub fn make_flag(options: &str, desc: Option<&str>) -> Option<Flag> {
   // todo parse flag types
   match desc {
     Some(desc) => {
+      // Get rid of subsection headings at the end
+      let desc_end = RegexBuilder::new("\\.SS.*")
+        .dot_matches_new_line(true)
+        .build()
+        .expect("Regex should be valid");
+      let desc = desc_end.replace(&desc, "");
+
       let desc = desc.trim().replace('\n', " ");
       let desc = desc.trim_end_matches('.');
       // Remove bogus escapes
       let desc = desc.replace(r"\'", "").replace(r"\.", "");
 
       let desc = trim_desc(&desc);
+
       let desc = if desc.is_empty() { None } else { Some(desc) };
       Some(Flag {
         forms,
